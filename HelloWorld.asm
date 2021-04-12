@@ -4,56 +4,86 @@ section .text
 global CMAIN
 CMAIN:
     mov rbp, rsp; for correct debugging
-    ;write your code here
+   
+    GET_DEC 1, al ;10진수로 input
+    GET_DEC 1, num
     
-    ;mov eax, 0x1234
-    ;mov rbx, 0x12345678
-    ;mov cl, 0xff
+    ;PRINT_DEC 1, al
+    ;NEWLINE
+    ;PRINT_DEC 1, num
     
-    ;mov al, 0x00 ;1byte만 사용
+    ;add a, b (a = a + b)
+    ;a는 레지스터 or 메모리
+    ;b는 레지스터 or 메모리 or 상수
+    ; 단! a, b 모두 메모리는 X
     
-    ;메모리(실행) <-사용-> 레지스터(저) : 서로 핑퐁(?)
+    ;빼기 연산 == 더하기 연산
+    ;sub a, b (a= a-b)
     
-    ;mov rax, a
-    ;-> rax에 a값을 가지는게 아니라 a의 주소값을 가지게됨
-    ; 각자 주소값 접근
-    ;mov rax, [a] ;
-    ;-> rax의 크기만큼 a의 값을 복사(a크기 != rax크기)
-    ;mov al, [a]
-    ;-> a의 크기만큼 할당
+    add al, 1; 레지스터 + 상수
+    PRINT_DEC 1, al ; 1+1=2
+    NEWLINE
     
-    ;mov [a], byte 0x55
-    ;mov [a], word 0x6666
-    ;mov [a], cl
+    add al, [num] ; 레지스터 + 메모리
+    ;그냥 num은 주소값 복사 -> 값 복사 대괄호 필수
+    PRINT_DEC 1, al ; 2+2=4
+    NEWLINE
     
+    mov bl, 3 ; 레지스터 + 레지스터
+    add al, bl
+    PRINT_DEC 1, al ; 4+3=7
+    NEWLINE
+    
+    add [num], byte 1 ; 메모리 + 상수
+    PRINT_DEC 1, [num] ;1+2=3
+    NEWLINE
+    
+    add [num], al ; 메모리 + 레지스터
+    PRINT_DEC 1, [num] ;3+7=10
+    NEWLINE
+    
+    ; 곱하기 연산
+    ; mul reg
+    ; - mul bl => al * bl 
+    ; -- 연산 결과를 ax에 저장
+    ; - mul bx => ax* bx
+    ; -- 연산 결과는 dx(상위 16비트) ax(하위16비트)에 저장
+    
+    ; 예) 5*8 ?
+    mov ax, 0
+    mov al, 5
+    mov bl, 8
+    mul bl
+    PRINT_DEC 2,ax
+    NEWLINE
+    
+    ; 나누기 연산 (1바이트 나누기)
+    ; div teg
+    ; - div bl => ax / bl
+    ; -- 연산결과는 al(몫) ah(나머지)
+    
+    ;예) 100/3 ?
+    mov ax, 100
+    mov bl, 3
+    div bl
+    PRINT_DEC 1,al
+    NEWLINE
+    mov al, ah ;ah 값 al에 복사해서 출력
+    PRINT_DEC 1,al
+
     xor rax, rax
     ret
-    
-    ;변수의 선언 및 사용
-    ;변수 = 데이터를 저장하는 바구니 [ ]-메모리를 요청하는
-    ; -> 초기 바구니 사용 선언 == 이름, 크기 지정
     
     ; 초기화 된 데이터
     ;[변수이름] [크기] [초기값]
     ;[크기] db(1) dw(2) dd(4) dq(8)    
     
-section .data
-    msg db 'Hello World', 0x00 ;=null (문자끝표시)
-    
-    a db 0x11 
-    ;b dw 0x2222
-    c dd 0x33333333
-    d dq 0x4444444444444444
-    
-    b dd 0x12345678 
-    ;거꾸로 저장 = Little-Endian : 캐스팅(데이터 추출)유리
-    ;그대로 저장 = Big-Endian : 숫자 비교 유리
-    ;local과 server에 저장하는 방식이 다를수있으니 웬만하면 서버로 보낼때 따르는 방식 하나를 지정할 것
+;section .data
     
     ; 초기화 되지 않은 데이터
     ; [변수이름] [크기] [개수]
     ; [크기] resb(1) resw(2) resd(4) resq(8)
     
 section .bss
-    e resb 10
+    num resb 1
 
