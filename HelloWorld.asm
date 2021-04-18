@@ -3,40 +3,56 @@
 section .text
 global CMAIN
 CMAIN:
-        mov rbp, rsp; for correct debugging
+    mov rbp, rsp; for correct debugging
    
-    ; 배열과 주소
+    ; 함수 (procedure 프로시저, subroutine 서브루틴)
+    ;call PRINT_MSG
     
-    ; 배열 : 동일한 타입의 데이터 묶음
-    ; - 배열을 구성하는 각 값을 배열 요소(element)
-    ; - 배열의 위치를 가리키는 숫자를 인덱스(index)
-    
-    ; 주소
-    ; [시작 주소 + 인덱스 +크기]
-    
-    mov rax, a
-    ;연습문제 : a배열의 모든 데이터 출력해보기
-    
-    xor rbx, rbx ;rbx=0
-    
-LABEL_INDEX:
-    PRINT_HEX 1, [a+rbx]
+    mov eax, 10
+    mov ebx, 5
+    call MAX
+    PRINT_DEC 4, ecx
     NEWLINE
-    add rbx, 1 ;inc rbx
-    cmp rbx, 5
-    jne LABEL_INDEX
-    
-    xor ecx, ecx
-    
-LABEL_INDEX2:  ;바이트 크기 고려해서 더해주기
-    PRINT_HEX 1, [b+ecx]
-    NEWLINE
-    add ecx, 2
-    cmp ecx, 10
-    jne LABEL_INDEX2
     
     xor rax, rax ; return 0 과 같은 의미
     ret
+    
+PRINT_MSG:
+    PRINT_STRING msg
+    NEWLINE
+    ret
+    
+;ex) 두 값중 더 큰 값을 반환하는 mx
+;근데 두 기ㅏㅄ을 어떻게 넘겨받지? 반환 어떻게?
+;eax와 ebx 입력값을 ecx에 반환
+MAX:
+    cmp eax, ebx
+    jg L1 ;eax가 크면 L1으로 이동
+    mov ecx, ebx
+    jmp L2
+    
+L1:
+    mov ecx, eax
+    
+L2:
+    ret
+    
+    ; 그런데 인자가 10개라면 어떻게 할까? a,b,c,d,,,
+    ; eax, ebx에 이미 중요한 값이 있으면 어떻게 할까?
+    ; [!] .data .bss 사용하면?
+    ; 인자를 도대체 몇개를 할당해야 하지?
+    
+    ; 다른 메모리 구조가 필요하다
+    ; - 꿈이 유효한 동안에는 그 꿈을 유지시켜야함 (유효범위의 개념이 있다)
+    ; - 꿈이 끝나면 그 꿈을 부셔버려도 됨 (정리의 개념이 있다)
+    ; - 꿈에서도 또 꿈을 꿀 수 있따는 것을 고려해야 함 (유동적으로 유효 범위가 확장 가능)
+    
+    ; [!] 스택(stack)이라는 메모리 영역을 사용
+    ; 함수가 사용하는 일종의 메모장
+    ; - 매개 변수 전달
+    ; - 돌아갈 주소 관리
+    
+    ;===> To be continued...
     
     ; 초기화 된 데이터
     ;[변수이름] [크기] [초기값]
@@ -44,15 +60,6 @@ LABEL_INDEX2:  ;바이트 크기 고려해서 더해주기
     
 section .data
     msg db 'Hello World', 0x00
-    a db 0x01, 0x02, 0x03, 0x04, 0x05 ; 5*1=5바이트
-    ;a와 b가 연이어서 메모리가 잡혀있음
-    ;memory 표시 : 0x01 0x00 =엔디안 처리=> 0x0001
-    b times 5 dw 1 ; 2바이트 크기로 5개 만들고 1로 초기화 ; 5*2=10바이트
-    
-    map1 db '########', 0x00
-    map2 db '#  ##  #', 0x00
-    map3 db '#      #', 0x00
-    map4 db '########', 0x00
     
     ; 초기화 되지 않은 데이터
     ; [변수이름] [크기] [개수]
