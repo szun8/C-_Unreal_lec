@@ -5,60 +5,66 @@ global CMAIN
 CMAIN:
     mov rbp, rsp; for correct debugging
    
-   ; 쉬프트(shit)연산
+   ; 분기문 (if)
+   ; 특정 조건에 따라서 코드 흐름을 제어하는 것
+   ; ex) 스킬 버튼 눌렀는가? - YES -> 스킬 사용
+   ; ex) 제한 시간 내에 던전 입장 수락 버튼을 눌렀는가? YES -> 입장, NO -> 던전 취소
    
-   mov eax, 0x12345678
-   PRINT_HEX 4, eax
-   NEWLINE
-   shl eax, 8 ;왼쪽으로 8칸 shift == 최상위 8bit는 분실이 된다는 의미
-   PRINT_HEX 4, eax
-   NEWLINE
-   shr eax, 8 ;오른쪽으로 8칸 shift == 최하위 8bit 분실
-   PRINT_HEX 4, eax
-   NEWLINE
-   ; 왜 ? 빠른 곱셈/나눗셈
-   ; 게임서버에서 각각 캐릭터의 ObjectID를 만들어줄 때
+   ; 조건 -> 흐름
    
-   ; 논리(logical) 연산 => NOT AND OR XOR
-   ; 조건 A , B
-   ; not A : 0 이면 1, 1 이면 0
-   ; A and B : 둘 다 참(1)이면 1출력, 하나라도 아니면 0출력
-   ; A or B : 둘 중 하나라도 1이면 1출력, 둘 다 아니면 0출력
-   ; A xor B : 둘 다 1이거나 0이면 0출력, 서로 다르면 1출력
+   ; CMP(컴페어 명령-두 피연산자를 비교) dst, src (dst가 기준)
+   ; https://url.kr/c5brvt
+   ; 비교를 한 결과물은 Flag Register 저장 (상태 저장)
    
-   mov al, 0b10010101
-   mov bl, 0b01111100
+   ; JMP [label] 시리즈
+   ; 이걸 통해서 비교-저장된 상태에 맞춰 시리즈 작동시켜주면 되는
+   ; JMP : 무조건 jump
+   ; JE : JumpEquals 같으면 jump
+   ; JNE : JumpNotEquals 크면 jump
+   ; JG : JumpGreater 크면 jump
+   ; JGE : JumpGreaterEquals 크거나 같으면 jump
+   ; JL, JLE 등 많은 조건이 있음
    
-   and al, bl ; al and bl = 0b0001 0100 = 0x14
-   PRINT_HEX 1, al
-   NEWLINE
+   ; 두 숫자가 같으면 1, 아니면 0을 출력하는 프로그램
    
-   not al ;0b1110 1011 = 0xeb
-   PRINT_HEX 1, al
-   NEWLINE
+   mov rax, 10
+   mov rbx, 20
    
-   ;응용사례: bitflag = 각 0과 1에 의미 부여
+   cmp rax, rbx
+   je LABEL_EQUAL ;비교 결과물이 같으면 이 위치로 이동
    
-   mov al, 0b10010101 ;0x95
-   mov bl, 0b01111100 ;0x7c
+   ; je에 의해 점프를 안했다면, 같지 않다는 의미로 0 입력후, LABEL_EQUAL_END로 이동
+   mov rcx, 0
+   jmp LABEL_EQUAL_END
    
-   NEWLINE
-   PRINT_HEX 1, al
-   NEWLINE
+LABEL_EQUAL: ;어셈블리어에서만 기능하는 위치 라벨
+    mov rcx, 1
+LABEL_EQUAL_END:
+    PRINT_HEX 1,rcx
+    NEWLINE
+    
+    ; 연습문제 : 어떤 숫자(1~100)가 짝수면 1, 홀수면 0을 출력하는 프로그램
+    mov ax, 100
+    mov bl, 2
+    
+    div bl ;100/2
+    ; 나머지 ah가 0이면, 짝수/ 1이면, 홀수
+    cmp ah, 0 ;짝수냐?
+    je LABEL_EVEN ;짝수임.
+    
+    mov rcx, 0 ;홀수임.
+    jmp LABEL_NEVEN
+    
+LABEL_EVEN:
+    mov rcx, 1
+    
+LABEL_NEVEN:
+    PRINT_HEX 1, rcx
+    NEWLINE
+
+    
    
-   xor al, bl ; 0b1110 1001 = 0xe9
-   PRINT_HEX 1, al
-   NEWLINE
-   
-   xor al, bl ; 0b1001 0101 = 0x95
-   PRINT_HEX 1, al
-   NEWLINE
-   ; 동일한 값으로 xor 두번하면 자기 자신으로 되돌아오는 특성
-   ; 암호학에서 유용 - 대칭키 암호 (value xor key)
-   
-   xor al, al ;자기끼리 연산하면, == mov al, 0
-   PRINT_HEX 1, al ; 무조건 0 출력
-   
+   ;비교 결과 저장 내용 eflag register, cmp eflag 구글링^^
     xor rax, rax ; return 0 과 같은 의미
     ret
     
