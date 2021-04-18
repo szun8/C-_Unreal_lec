@@ -3,75 +3,37 @@
 section .text
 global CMAIN
 CMAIN:
-    mov rbp, rsp; for correct debugging
-   ; 반목문(while, for)
-   ; 특정 조건을 만족할때까지 반복해서 실행
+        mov rbp, rsp; for correct debugging
    
-   ;ex) Hello World 10번 출력?
-   
-   mov ecx, 10
-   
-LABEL_LOOP:
-    PRINT_STRING msg
+    ; 배열과 주소
+    
+    ; 배열 : 동일한 타입의 데이터 묶음
+    ; - 배열을 구성하는 각 값을 배열 요소(element)
+    ; - 배열의 위치를 가리키는 숫자를 인덱스(index)
+    
+    ; 주소
+    ; [시작 주소 + 인덱스 +크기]
+    
+    mov rax, a
+    ;연습문제 : a배열의 모든 데이터 출력해보기
+    
+    xor rbx, rbx ;rbx=0
+    
+LABEL_INDEX:
+    PRINT_HEX 1, [a+rbx]
     NEWLINE
-    dec ecx ;sub ecx, 1과 동일
-    cmp ecx, 0
-    jne LABEL_LOOP
+    add rbx, 1 ;inc rbx
+    cmp rbx, 5
+    jne LABEL_INDEX
     
-    ;연습문제 : 1~100까지의 합을 구하는 프로그램
-    
-    mov rax, 0
-    mov rbx, 1
-    
-LABEL_PLUS:
-    add rax, rbx ;
-    add rbx, 1
-    cmp rbx, 101
-    jne LABEL_PLUS
-    
-    PRINT_DEC 1, rax
-    NEWLINE
-    
-    ;강의 풀이(1,1~100)
-    mov eax, 100 ; 최종 목적지
-    xor ebx, ebx ; mov ebx, 0 / ebx: 결과물
     xor ecx, ecx
     
-LABEL_SUM:
-    inc ecx ; add ecx, 1과 동일
-    add ebx, ecx ; ebx = ebx + ecx
-    cmp ecx, eax
-    jne LABEL_SUM
-    
-    PRINT_DEC 4, ebx
+LABEL_INDEX2:  ;바이트 크기 고려해서 더해주기
+    PRINT_HEX 1, [b+ecx]
     NEWLINE
-    
-    ;강의 풀이(2,100~1)
-    mov eax, 100
-    xor ebx, ebx ; mov ebx, 0 / ebx: 결과물
-    xor ecx, ecx
-    
-LABEL_SUM2:
-    add ebx, ecx ; ebx = ebx + ecx
-    dec eax
-    cmp eax, 0
-    jne LABEL_SUM2
-    
-    PRINT_DEC 4, ebx
-    NEWLINE
-    
-    ; loop [라벨]
-    ; - ecx에 반복 횟수
-    ; - loop 할때마다 ecx 1 감소 0이면 빠져나감 아니면 라벨로 이동
-   
-    mov ecx, 100
-    xor ebx, ebx ; mov ebx, 0 / ebx: 결과물
-LABEL_LOOP_SUM:
-    add ebx, ecx
-    loop LABEL_LOOP_SUM ; ecx를 1줄이는 기능이 내부에 있다고 보면되고 0되면 루프 탈출
-    
-    PRINT_DEC 4, ebx
-    NEWLINE
+    add ecx, 2
+    cmp ecx, 10
+    jne LABEL_INDEX2
     
     xor rax, rax ; return 0 과 같은 의미
     ret
@@ -82,11 +44,20 @@ LABEL_LOOP_SUM:
     
 section .data
     msg db 'Hello World', 0x00
+    a db 0x01, 0x02, 0x03, 0x04, 0x05 ; 5*1=5바이트
+    ;a와 b가 연이어서 메모리가 잡혀있음
+    ;memory 표시 : 0x01 0x00 =엔디안 처리=> 0x0001
+    b times 5 dw 1 ; 2바이트 크기로 5개 만들고 1로 초기화 ; 5*2=10바이트
+    
+    map1 db '########', 0x00
+    map2 db '#  ##  #', 0x00
+    map3 db '#      #', 0x00
+    map4 db '########', 0x00
     
     ; 초기화 되지 않은 데이터
     ; [변수이름] [크기] [개수]
     ; [크기] resb(1) resw(2) resd(4) resq(8)
-    
+
 section .bss
-    num resb 1
+    num resb 10
 
