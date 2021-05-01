@@ -5,54 +5,48 @@ global CMAIN
 CMAIN:
     mov rbp, rsp; for correct debugging
    
-    ; 함수 (procedure 프로시저, subroutine 서브루틴)
-    ;call PRINT_MSG
+    ; 스택 메모리, 스택 프레임
     
-    mov eax, 10
-    mov ebx, 5
-    call MAX
-    PRINT_DEC 4, ecx
+    ; 레지스터는 다양한 용도로 사용
+    ; - a b c d 범용 레지스터
+    ; - 포인터 레지스터 (포인터 = 위치를 가리키는~)
+    ; -- ip (instruction Pointer) : 다음 수행 명령어의 위치
+    ; -- sp (Stack Pointer) : 현재 스택 top 위치 (일종의 cursor)(실시간으로 내가 어딜 사용하고 있느냐)
+    ; -- bp (Base Pointer) : 스택 상대주소 계산용 (여러 메모리들이 함수에 들어있으니 각각의 주소를 알기위해, sp는 계속 바뀌니까 bp가 알기 쉽게 배의 닻처럼 기억하 싶은 주소를 저장해주는 역할)
+    
+    ; 이전 단계에서 rax랑 rbx에 중요한 데이터가 저장 되어있었다면,
+    push rax
+    push rbx ; 중요한 두 데이터를 넣어서 임시 저장
+    push 5
+    push 2
+    call MAX ;Stack에 돌아올 주소를 저장하기에 다시 여기로 리턴되어 올 수 있는 것
+    PRINT_DEC 8, rax
     NEWLINE
+    ; stack을 쓰고 깨끗이 복원을 안해주면 Crash가 날 수 있음
+    add rsp, 16 ;옆 처럼 위치를 상위 원래 위치로 돌려주거나 pop을 두번 해서 비워주거나 해야함.
+    pop rbx
+    pop rax
+    
+MAX:
+    push rbp
+    mov rbp, rsp
+    
+    mov rax, [rbp+16] ;rbp+8 == return, 주소 접근
+    mov rbx, [rbp+24]
+    cmp rax, rbx
+    jg L1 ;rax가 더 크면 밑으로 점프 아니면 밑으로 가서 rbx값 rax에 복사
+    mov rax, rbx
+L1:    
+    pop rbp
+    ret
     
     xor rax, rax ; return 0 과 같은 의미
     ret
-    
-PRINT_MSG:
-    PRINT_STRING msg
-    NEWLINE
-    ret
-    
-;ex) 두 값중 더 큰 값을 반환하는 mx
-;근데 두 기ㅏㅄ을 어떻게 넘겨받지? 반환 어떻게?
-;eax와 ebx 입력값을 ecx에 반환
-MAX:
-    cmp eax, ebx
-    jg L1 ;eax가 크면 L1으로 이동
-    mov ecx, ebx
-    jmp L2
-    
-L1:
-    mov ecx, eax
-    
-L2:
-    ret
-    
-    ; 그런데 인자가 10개라면 어떻게 할까? a,b,c,d,,,
-    ; eax, ebx에 이미 중요한 값이 있으면 어떻게 할까?
-    ; [!] .data .bss 사용하면?
-    ; 인자를 도대체 몇개를 할당해야 하지?
-    
-    ; 다른 메모리 구조가 필요하다
-    ; - 꿈이 유효한 동안에는 그 꿈을 유지시켜야함 (유효범위의 개념이 있다)
-    ; - 꿈이 끝나면 그 꿈을 부셔버려도 됨 (정리의 개념이 있다)
-    ; - 꿈에서도 또 꿈을 꿀 수 있따는 것을 고려해야 함 (유동적으로 유효 범위가 확장 가능)
-    
+
     ; [!] 스택(stack)이라는 메모리 영역을 사용
     ; 함수가 사용하는 일종의 메모장
     ; - 매개 변수 전달
     ; - 돌아갈 주소 관리
-    
-    ;===> To be continued...
     
     ; 초기화 된 데이터
     ;[변수이름] [크기] [초기값]
