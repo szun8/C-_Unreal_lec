@@ -8,6 +8,15 @@ using namespace std;
 int a = 1;
 int b = 2;
 
+bool isSame;
+bool isDifferent;
+bool isGreater;
+bool isSmaller;
+
+bool test;
+
+int hp = 100;
+bool isinvincible = true; //무적상태
 
 int main()
 {
@@ -38,4 +47,49 @@ int main()
 
 #pragma endregion
 
+#pragma region 비교 연산
+	// 언제 필요? 
+	// Ex)
+	// 체력이 0이 되면 사망
+	// 경험치가 100 이상이면 레벨업
+	// 체력이 30% 이하이면 궁극기를 발동 (100 * hp /maxHp)
+
+	// a == b : 둘의 값이 같냐?
+	// 같으면 1, 다르면 0 반환
+	isSame = (a == b);
+
+	// a != b : 둘의 값이 다르냐?
+	// 다르면 1, 같으면 0 반환
+	isDifferent = (a != b);
+
+	// a > b : a의 값이 b보다 큼?
+	// a >= b : a의 값이 b보다 크거나 같은가?
+	isGreater = (a > b);
+
+	// a < b : a의 값이 b보다 작냐?
+	// a <= b : a의 값이 b보다 작거나 같은가?
+	isSmaller = (a < b);
+
+#pragma endregion
+
+#pragma region 논리 연산
+	// 언제 필요? : 조건에 대한 논리적 사고가 필요 = 여러가지 조건을 보고 상황을 종합적으로 판단해야할 때
+	// Ex)
+	// 로그인시, 아이디와 비밀번호도 같아야함 (AND)
+	// 길드 마스터 이거나 운영자 계정이면 길드 해산이 가능 (OR)
+
+	// ! not
+	// 0이면, 1 / 1이면 0 반환
+	test = !isSame; // = isDifferent의 의미
+
+	// && and
+	// a && b -> 둘다 1이면 1, 그외 0
+	test = (hp <= 0 && isinvincible == false); //죽음
+
+	// || or
+	// a || b -> 둘 중 하나라도 1이면 1, 둘다 0이면 0
+	test = (hp > 0 || isinvincible == true); //살았음
+	!(hp <= 0 && isinvincible == false); //위와 같은 의미
+
+#pragma endregion
 }	
