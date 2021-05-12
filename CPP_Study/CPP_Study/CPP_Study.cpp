@@ -18,6 +18,8 @@ bool test;
 int hp = 100;
 bool isinvincible = true; //무적상태
 
+unsigned char flag; // 부호를 없애야 >>를 하더라도 부호비트가 딸려오지 않음
+
 int main()
 {
 #pragma region 산술 연산
@@ -44,6 +46,7 @@ int main()
 
 	b = a++; // 1) b=a, 2) a+1
 	b = ++a; // 1) a+1 2) b=a
+	// 어셈블리어에서 까서 보여주는게 꽤나 이해하기 효과적이었음
 
 #pragma endregion
 
@@ -91,5 +94,47 @@ int main()
 	test = (hp > 0 || isinvincible == true); //살았음
 	!(hp <= 0 && isinvincible == false); //위와 같은 의미
 
+#pragma endregion
+
+#pragma region 비트 연산
+// 언제 필요? : (사실 많이 X) 비트 단위의 조작이 필요할 때, 대표적으로 BitFlag
+	// ~ bitwise not = 단일 숫자의 모든 비트를 대상으로, 0은 1/ 1은 0으로 뒤바꿈
+	// & bitwise and = 두 숫자의 모든 비트 쌍을 대상으로 and를 한다
+	// | bitwise or = 두 숫자의 모든 비트 쌍을 대상으로 or을 한다
+	// ^ bitwise xor = 두 숫자의 모든 비트 쌍을 대상으로 xor을 한다
+
+// << 비트 좌측 이동
+	// - 비트열을 N만큼 왼쪽 이동
+	// - 왼쪽의 넘치는 N개의 비트는 버림
+	// - 새로 생성되는 N개의 비트는 0
+	// - *2를 할 때 자주 보이는패턴
+
+// >> 비트 우측 이동
+	// - 비트열을 N만큼 오른쪽으로 이동
+	// - 오른쪽의 넘치는 N개의 비트는 버림
+	// - 왼쪽 생성되는 N개의 비트는 
+	// 	   + 부호 비트가 존재할 겨우, 부호 비트를 따라감 (부호있는 정수라면 이 부분을 유의)
+	// 	   + 아니면 0 (만약 부호 필요X면, unsigned 사용하는게 정신건강상 좋을듯,,,)
+
+// 실습
+	// 0b0000 [3.무적] [2.변이] [1.스턴] [0.공중부양]
+
+	// 무적 상태로 만든다
+	const int INVINCIBLE = 3;
+	flag = (1 << INVINCIBLE); // 8로 컴파일 인식
+
+	// 변이 상태를 추가 (무적 + 변이)
+	flag |= (1 << 2); // 위에서 설정한 무적상태를 유지하기 위해 bitwise or 사용 
+
+	// 무적인지 확인하고 싶다? (다른 상태는 관심 없다고 가정)
+	// bitmask : 내가 궁금한 것만 추출해서 확인시켜주는 좋은 기능
+	bool invincible = ((flag & (1 << 3)) != 0); // (1<<3) : 이 부분이 bitmask
+
+	// 무적이거나 스턴 상태인지 확인하고 싶다면?
+	bool stunOrInvincivle1 = ((flag & (1 << 3)) | (flag & (1 << 1))) != 0; //me
+	bool stunOrInvincivle2 = ((flag & 0b1010) != 0); //lesson
+
+	bool mask = (1 << 3) | (1 << 1);
+	bool stunOrInvincivle3 = ((flag & mask) != 0); //lesson
 #pragma endregion
 }	
