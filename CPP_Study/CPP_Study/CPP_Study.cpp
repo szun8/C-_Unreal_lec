@@ -20,8 +20,36 @@ bool isinvincible = true; //무적상태
 
 unsigned char flag; // 부호를 없애야 >>를 하더라도 부호비트가 딸려오지 않음
 
+// 데이터 하드코딩 지양
+
+// 한번 정해지면 절대 바뀌지 않을 값들
+// constant의 약자인 const를 붙임 (변수를 상수화 한다고함)
+// const를 붙였으면 초기값 반드시 지정
+
+const int AIR = 0;
+const int STUN = 1;
+const int POLYMORPH = 2;
+const int INVINVIBLE = 3;
+// 보통 바꾸지 않는 값 설정 변수명은 대문자로 설정
+
+// 전역 변수에 const를 지정하면 따로 컴파일러가 영역을 잡아서 처리하는게 아니라 바로 3처리
+// 지역 변수에 const를 지정하면 전역과 다르게 스택영역을 잡아서 처리
+
+// 전역 변수
+// [데이터 영역]
+// .data (초기값이 있는 경우)
+int a = 2;
+// .bss (초기값이 없는경우)
+int b;
+// .rodata (읽기 전용 데이터)
+const char* msg = "Hello World";
+
 int main()
 {
+	// 지역 변수
+	// [스택 영역]
+	int c = 3;
+
 #pragma region 산술 연산
 	// 산술 연산자
 
@@ -120,11 +148,10 @@ int main()
 	// 0b0000 [3.무적] [2.변이] [1.스턴] [0.공중부양]
 
 	// 무적 상태로 만든다
-	const int INVINCIBLE = 3;
-	flag = (1 << INVINCIBLE); // 8로 컴파일 인식
+	flag = (1 << INVINVIBLE); // 8로 컴파일 인식
 
 	// 변이 상태를 추가 (무적 + 변이)
-	flag |= (1 << 2); // 위에서 설정한 무적상태를 유지하기 위해 bitwise or 사용 
+	flag |= (1 << POLYMORPH); // 위에서 설정한 무적상태를 유지하기 위해 bitwise or 사용 
 
 	// 무적인지 확인하고 싶다? (다른 상태는 관심 없다고 가정)
 	// bitmask : 내가 궁금한 것만 추출해서 확인시켜주는 좋은 기능
