@@ -50,6 +50,7 @@ int MultiplyBy(int a, int b) {
 // 스택프레임
 // = (매개변수 + 반환 주소값(함수가 끝났을때 돌아갈 주소 저장) + 지역변수)
 // 의 단위로 스택 프레임이 쌓이고 해제됨
+// 참고 링크 : http://tcpschool.com/c/c_memory_stackframe
 
 int main()
 {
