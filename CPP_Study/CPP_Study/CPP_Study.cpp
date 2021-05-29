@@ -3,60 +3,87 @@ using namespace std;
 
 int main()
 {
-	// 연습문제
+	srand(time(0)); // Seed값 설정해 랜덤값 랜덤으로 설정, rand()와 짝꿍!
+	
+	int mine;
 
-	// 별찍기)
-	// 유저들이 어떤 정수를 입력하면,
+	int wins=0;
+	int total = 0;
 
-	//1번)
-		// n*n개의 별을 찍었으면 좋겠어요
+	const int SCICCORS = 1;
+	const int ROCK = 2;
+	const int PAPER = 3;
 
-	int input;
-	cin >> input;
 
-	for (int i = 0; i < input; i++) { // 줄
-		for (int j = 0; j < input; j++) { // 별
-			cout << "*";
+	do {
+		cout << "가위(1) 바위(2) 보(3) 골라주세요!" << endl << ">" << endl;
+
+		if (total == 0) {
+			cout << "현재 승률 : 없음" << endl;
 		}
-		cout << endl;
-	}
-
-	//2번)
-		// 1개부터 시작해서 순차적으로 줄마다 증가하게 수정
-
-	int input2;
-	cin >> input2;
-
-	for (int i = 0; i < input2; i++) {
-		for (int j = 0; j < i+1; j++) {
-			cout << "*";
+		else {
+			//확률을 구해준다
+			int winPecentage = (wins * 100) / total; // 승률
+			cout << "현재승률 : " << winPecentage << endl;
 		}
-		cout << endl;
-	}
 
-	//3번)
-		// N개부터 시자해 줄마다 1개씩 줄어들기!
+		cin >> mine; // 사용자
+		int value = 1 + (rand() % 3); // 0.1,2 사이의 값, 컴퓨터
 
-	int input3;
-	cin >> input3;
-
-	for (int i = 0; i < input3; i++) {
-		for (int j = input3; j > i; j--) {
-			cout << "*";
+		if (mine == SCICCORS) { // 가위
+			if (value == SCICCORS)
+				cout << "가위(님) vs 가위(컴퓨터) 비겼습니다!" << endl;
+			else if (value == ROCK) {
+				cout << "가위(님) vs 바위(컴퓨터) 졌습니다!" << endl;
+				total++;
+			}
+		
+			else {
+				cout << "가위(님) vs 보(컴퓨터) 이겼습니다!" << endl;
+				wins++;
+				total++;
+			}
 		}
-		cout << endl;
-	}
 
-	// 구구단
-		// 2단부터 9단까지
-
-
-	for (int i = 2; i <= 9; i++) {
-		cout << "[ " << i << "단 ]" << endl;
-		for (int j = 1; j <= 9; j++) {
-			cout << i << "*" << j << "=" << i * j << endl;
+		else if (mine == ROCK) { // 바위
+			if (value == SCICCORS) {
+				cout << "바위(님) vs 가위(컴퓨터) 이겼습니다!" << endl;
+				wins++;
+				total++;
+			}
+			else if (value == ROCK)
+				cout << "바위(님) vs 바위(컴퓨터) 비겼습니다!" << endl;
+			else {
+				cout << "바위(님) vs 보(컴퓨터) 졌습니다!" << endl;
+				total++;
+			}
+				
 		}
+
+		else if (mine == PAPER) { // 보
+			if (value == SCICCORS) {
+				cout << "보(님) vs 가위(컴퓨터) 졌습니다!" << endl;
+				total++;
+			}
+				
+			else if (value == ROCK) {
+				cout << "보(님) vs 바위(컴퓨터) 이겼습니다!" << endl;
+				total++;
+				wins++;
+			}
+				
+			else
+				cout << "보(님) vs 보(컴퓨터) 비겼습니다!" << endl;
+		}
+
+		else
+			break;
+
 		cout << endl;
-	}
+
+	} while (mine < 4 && mine > 0);
+
+	
+
 }	
 
