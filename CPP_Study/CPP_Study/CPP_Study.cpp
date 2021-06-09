@@ -1,194 +1,66 @@
 ﻿#include <iostream>
 using namespace std;
 
-// 오늘의 주제 : TextRPG
+// 오늘의 주제 : 포인터1+2
 
-enum PlayerType {
-	PT_Knight=1,
-	PT_Archer,	// 2
-	PT_Mage		// 3
-};
+// 단점 : 원본 수정, 유효범위가 있는 지역변수 외부 접근 X
 
-enum MonsterType {
-	MT_Slime = 1,
-	MT_Orc,	// 2
-	MT_Skeleton	// 3
-};
+// 선언 : TYPE* 변수이름;
+// 일단 2가지 요소
+// - Type 
+// - *
 
-struct ObjectInfo { // 구조체
-	short type;
-	int hp;
-	char attack;
-	int defence;
-	// 이론상 2+4+1+4 = 11bytes
-	// 그러나 이 구조체의 크기는 11이 아닐수도 있음 
-	// ---> 메모리영역에 padding 값을 같이 넣어줘서 컴퓨터가 계산하기 쉽게 정렬함 (나중에 더 이야기해볼거임.)
-	// 실제로 까보면 short를 4byte로 잡고 있음
-};
-
-ObjectInfo playerInfo;
-ObjectInfo monsterInfo;
-
-void EnterLobby();
-void SelectPlayer();
-void EnterField();
-void CreateRandomMonster();
-void EnterBattle();
+void SetUp(int* hp) {
+	*hp = 100;
+}
 
 int main()
 {
-	// 랜덤 시드 설정
-	srand(time(0));
+	// 간단한 실습
+	int hp = 1;
+	SetUp(&hp);
 
-	EnterLobby();
 
+	int number=1;
+
+	// [저장소의 주소를 저장하는 바구니!]
+	// 변수 선언할 때 * 등장했다 -> 포인터 = 주소
+	// 참고) 포인터라는 바구니는 4바이트(32비트) or 8바이트(64비트) 고정크기
+	int* ptr = &number;  // & : 주소 내뱉기, number의 주소를 ptr에 저장
+
+	// 근데 남의 주소를 갖고 뭘 하라는거지?
+	// 추가 문법 : [주소를 저장하는 바구니]가 가리키는 주소로 가서 무엇인가를 해라!
+	// *변수이름 = 값;
+
+	int value1 = *ptr;
+	*ptr = 2;
+
+	// *이 여러번 등장하니 헷갈리는데, 사용 시점에 따라서 구분해 기억하자
+	// 1 - 변수 선언 (주소를 저장하는 바구니다!)
+	// 2 - 사용할 때(포탈타고 순간이동)
+
+	// Type은 왜 붙여줄까?
+	// * = 포인터의 의미 = 주소를 저장하는 바구니
+
+	// 주소에 가면 뭐가 있는데?
+	// ex1) 결혼식 청접장에 있는 주소 = 예식장 주소
+	// ex2) 명함에 있는 주소 = 회사 주소
+	// * = 포인터 (주소 바구니)
+
+	// 받아낸 주소 속의 값이 과연 뭐인지 분석하고 받아내야하기에 TYPE 필요
+	// 포인터 변수와 피포인터 변수의 타입형은 거의 일치
+	// (int) number = (int)* ptr
+
+	// BUT, 타입의 불일치
+	__int64* ptr2 = (__int64*)&number; // 캐스팅
+	*ptr2 = 0x0000AABBCCDDEEFF;
+	// number의 자료형은 int(4byte) <-> ptr2에 저장된 값은 4바이트 이상
+	// =-> number에 할당된 메모리 이상으로 그 다음 메모리영역도 사용하게됨
+			// 	0x008FF800  ccddeeff  (number)
+			//	0x008FF804  0000aabb  
+					// 값이 덮어쓰여지는 등 예상 외의 일이 발생!
+	
 	return 0;
 }	
 
-void EnterLobby() {
-	while (1) {
-		cout << "--------------------" << endl;
-		cout << "로비에 입장했습니다!" << endl;
-		cout << "--------------------" << endl;
-
-		// 플레이어 직업 선택
-		SelectPlayer();
-
-		cout << "---------------------------" << endl;
-		cout << "(1) 필드 입장 (2) 게임 종료" << endl;
-		cout << "---------------------------" << endl;
-
-		int input;
-		cin >> input;
-
-		if (input == 1) {
-			EnterField();
-		}
-		else {
-			return;
-		}
-	}
-}
-
-void SelectPlayer() {
-	while (1) {
-		cout << "------------------" << endl;
-		cout << "직업을 골라주세요!" << endl;
-		cout << "(1) 기사 (2) 궁수 (3) 법사" << endl;
-		cout << "> ";
-
-		cin >> playerInfo.type; //input
-		if (playerInfo.type == PT_Knight) {
-			cout << "기사 생성중..." << endl;
-			playerInfo.hp = 150;
-			playerInfo.attack = 10;
-			playerInfo.defence = 5;
-			break;
-		}
-		else if (playerInfo.type == PT_Archer) {
-			cout << "궁수 생성중..." << endl;
-			playerInfo.hp = 100;
-			playerInfo.attack = 15;
-			playerInfo.defence = 3;
-			break;
-
-		}
-		else if (playerInfo.type == PT_Mage) {
-			cout << "법사 생성중..." << endl;
-			playerInfo.hp = 80;
-			playerInfo.attack = 25;
-			playerInfo.defence = 0;
-			break;
-
-		}
-		// 세 개도 아니라면 다시 반복문 돌아서 직업선택!
-	}
-}
-
-void EnterField() {
-	while (1) {
-		cout << "--------------------" << endl;
-		cout << "필드에 입장했습니다!" << endl;
-		cout << "--------------------" << endl;
-
-		cout << "[PLAYER] HP : " << playerInfo.hp << " / ATT : " << playerInfo.attack << " / DEF : " << playerInfo.defence << endl;
-		CreateRandomMonster();
-
-		cout << "--------------------" << endl;
-		cout << "(1) 전투 (2) 도주" << endl;
-		cout << "> ";
-
-		int input;
-		cin >> input;
-
-		if (input == 1) {
-			EnterBattle();
-			if (playerInfo.hp == 0)
-				return;
-		}
-		else
-			return;
-	}
-}
-
-void CreateRandomMonster() {
-	// 1~3 랜덤 출력
-	monsterInfo.type = 1 + (rand() % 3);
-
-	switch (monsterInfo.type)
-	{
-	case MT_Slime:
-		cout << " 슬라임 생성중...! (HP:15 / ATT:5 / DEF:0)" << endl;
-		monsterInfo.hp = 15;
-		monsterInfo.attack = 5;
-		monsterInfo.defence = 0;
-		break;
-	case MT_Orc:
-		cout << " 오크 생성중...! (HP:40 / ATT:10 / DEF:3)" << endl;
-		monsterInfo.hp = 40;
-		monsterInfo.attack = 10;
-		monsterInfo.defence = 3;
-		break;
-	case MT_Skeleton:
-		cout << " 스켈레톤 생성중...! (HP:80 / ATT:15 / DEF:5)" << endl;
-		monsterInfo.hp = 80;
-		monsterInfo.attack = 15;
-		monsterInfo.defence = 5;
-		break;
-	}
-}
-
-void EnterBattle() {
-	while (1) {
-		int damage = playerInfo.attack - monsterInfo.defence;
-		if (damage < 0)
-			damage = 0;
-
-		//선빵
-		monsterInfo.hp -= damage;
-		if (monsterInfo.hp < 0)
-			monsterInfo.hp = 0;
-
-		cout << "몬스터 남은 체력 : " << monsterInfo.hp << endl;
-		if (monsterInfo.hp == 0) {
-			cout << "몬스터를 처치했습니다!" << endl;
-			return; // break;
-		}
-		
-		damage = monsterInfo.attack - playerInfo.defence;
-		if (damage < 0)
-			damage = 0;
-
-		// 반격
-		playerInfo.hp -= damage;
-		if (playerInfo.hp < 0)
-			playerInfo.hp = 0;
-
-		cout << "플레이어 남은 체력 : " << playerInfo.hp << endl;
-		if (playerInfo.hp == 0) {
-			cout << "당신은 사망했습니다... GAME OVER" << endl;
-			return; // break;
-		}
-	}
-}
 
