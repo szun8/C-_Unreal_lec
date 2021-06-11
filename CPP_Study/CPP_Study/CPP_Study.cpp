@@ -1,105 +1,98 @@
 ﻿#include <iostream>
 using namespace std;
 
-// 오늘의 주제 : 포인터 실습
+// 오늘의 주제 : 참조
 
-// 포인터로 구조체를 넘길 때(monster) vs 그냥 반환값으로 복사해서 넘겨줄 때(player)
-// 따라서, 포인터를 넘겨줄 때는 실제 원본을 대상으로 작업하기에 훨씬 더 빨리 됨 (효율 上)
+// 원본 데이터를 수정하고자 하는데, 
+// (주소 전달 방식인) 포인터로 매개변수를 넘겨주지 않는다면,
+// (값 전달방식을 이용한다면,)
+// 무조건 값복사라고 생각하고 원본 값은 조정되지 않는다
+
+// 값을 읽기만을 원한다면, (예를들어 print)
+// 값 전달 방식도 문제는 없
 
 struct StatInfo {
-	int hp;			// offset +0
-	int attack;		// +4
-	int defence;	// +8
+	int hp;
+	int attack;
+	int defence;
 };
 
-void EnterLobby();
-StatInfo CreatePlayer();
-void CreateMonster(StatInfo* info);
-// 플레이어 승리 시 true, 아니면 false
-bool StartBattle(StatInfo* player, StatInfo* monster);
+void CreateMonster(StatInfo* info) {
+	info->hp = 100;
+	info->attack = 8;
+	info->defence = 5;
+}
+
+// 1) 값 전달 방식
+void PrintInfoByCopy(StatInfo info) {
+	cout << "---------------------" << endl;
+	cout << "HP : " << info.hp << endl;
+	cout << "ATT : " << info.attack << endl;
+	cout << "DEF : " << info.defence << endl;
+	cout << "---------------------" << endl;
+}
+
+// 2) 주소 전달 방식
+void PrintInfoByPtr(StatInfo* info) {
+	cout << "---------------------" << endl;
+	cout << "HP : " << info->hp << endl;
+	cout << "ATT : " << info->attack << endl;
+	cout << "DEF : " << info->defence << endl;
+	cout << "---------------------" << endl;
+}
+
+// StatInfo 구조체가 1000바이트짜리 큰 대형 구조체라면?
+// - (값 전달) StatInfo로 넘기면 1000바이트가 복사되는
+// - (주소 전달) StatInfo*는 8바이트(CPU크기-64비트)
+// - [!] (참조 전달) StatInfo*는 8바이트(CPU크기-64비트)
+
+// 3) 참조 전달 방식
+// 값 전달 처럼 편리하게 사용하고
+// 주소 전달처럼 주소 값을 이용해 진퉁을 건드리는!
+// 일석이조의 방식!
+
+void PrintInfoByRef(StatInfo& info) {
+	cout << "---------------------" << endl;
+	cout << "HP : " << info.hp << endl;
+	cout << "ATT : " << info.attack << endl;
+	cout << "DEF : " << info.defence << endl;
+	cout << "---------------------" << endl;
+}
 
 int main()
 {
-	EnterLobby();
-	
+	// 4바이트 정수형 바구니를 사용
+	// 앞으로 그 바구니 이름은 number
+	// 그러니까 number에서 뭘 꺼내거나, 뭘 넣는다고 하면
+	// 찰떡같이 알아듣고 해당 주소에 넣어주면 된다
+	int number = 1;
+
+	// * 
+	// 주소를 담는 바구니
+	// int 그 바구니를 따라가면 int 데이터(바구니)가 있음
+	int* pointer = &number;
+	// pointer 바구니에 있는 주소를 타고 이동해서, 그 멀리 있는 바구니에 2를 넣는다
+	*pointer = 2;
+
+	// 로우레벨(어셈블리) 관점에서 실제 작동 방식은 int*와 똑같음
+	// 실제로 실행해보면 포인터랑 100% 똑같다
+	int& reference = number;
+
+	// C++관점에서는 number라는 바구니에 또 다른 이름을 부여한 것.
+	// number라는 바구니에 reference라는 다른 이름을 지어줄게
+	// 앞으로 reference 바구니에다가 뭘 꺼내거나 넣으면,
+	// 실제 number 바구니(진퉁에다가) 그 값을 꺼내거나 넣으면 됨!
+	reference = 3;
+
+	// 같다고 한다면 왜 굳이 참조를 사용하는가?
+	// 참조 전달 때문!
+
+	StatInfo info;
+	CreateMonster(&info);
+
+	PrintInfoByCopy(info);	// 값 전달
+	PrintInfoByPtr(&info);	// 주소 전달
+	PrintInfoByRef(info);	// 참조 전달
+
 	return 0;
-}
-
-void EnterLobby() {
-	cout << "로비에 입장했습니다" << endl;
-
-	StatInfo player;
-	// [매개변수][RET][지역변수(임시 저장소인 temp(100, 10, 2), player(b,b,b))] [매개변수(&temp)][RET][지역변수(ret(100, 10, 2))]
-	player = CreatePlayer();
-	// player = temp
-
-	StatInfo monster;
-	// [매개변수][RET][지역변수(monster(b,b,b))] [매개변수(&monster)][RET][지역변수()]
-	// ->를 통해 지역변수 monster의 변수들을 접근, 조정
-	CreateMonster(&monster); // 몬스터 구조체 넘겨주기
-
-	// 번외편1)
-	// 구조체끼리 복사할 때 무슨 일이 벌어질까?
-	// player = monster;
-	// 한줄이라도 빠른걸 의미 X
-
-	bool victory = StartBattle(&player, &monster);
-
-	if (victory)
-		cout << "승리!" << endl;
-	else
-		cout << "패배!" << endl;
-
-}
-
-StatInfo CreatePlayer() {
-	StatInfo ret; // 반환값
-	cout << "플레이어 생성" << endl;
-
-	ret.hp = 100;
-	ret.attack = 10;
-	ret.defence = 2;
-
-	return ret;
-}
-
-void CreateMonster(StatInfo* info) {
-	cout << "몬스터 생성" << endl;
-
-	info->hp = 40;
-	info->attack = 8;
-	info->defence = 1;
-
-}
-
-bool StartBattle(StatInfo* player, StatInfo* monster) {
-	while (true) {		// damage 변수는 그냥 계산용도 = 재사용 가능
-		// 둘 중하나 죽을 때까지 무한정 반복!!
-		int damage = player->attack - monster->defence;
-		if (damage < 0)
-			damage = 0;
-
-		monster->hp -= damage;
-		if (monster->hp < 0)
-			monster->hp = 0;
-
-		cout << "몬스터 HP : " << monster->hp << endl;
-
-		if (monster->hp == 0) // 몬스터 죽음
-			return true;
-
-		damage = monster->attack - player->defence;
-		if (damage < 0)
-			damage = 0;
-
-		cout << "플레이어 HP : " << player->hp << endl;
-
-		player->hp -= damage;
-		if (player->hp < 0)
-			player->hp = 0;
-
-		if (player->hp == 0) // 플레이어 죽음
-			return true;
-
-	}
 }
