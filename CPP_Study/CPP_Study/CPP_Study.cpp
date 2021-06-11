@@ -1,64 +1,105 @@
 ﻿#include <iostream>
 using namespace std;
 
-// 오늘의 주제 : 포인터 연산
+// 오늘의 주제 : 포인터 실습
 
-// 1) 주소 연산자 (&)
-// 2) 산술 연산자 (+, -)
-// 3) 간접 연산자 (*)
-// 4) 간접 멤버 연산자 (->)
+// 포인터로 구조체를 넘길 때(monster) vs 그냥 반환값으로 복사해서 넘겨줄 때(player)
+// 따라서, 포인터를 넘겨줄 때는 실제 원본을 대상으로 작업하기에 훨씬 더 빨리 됨 (효율 上)
 
-struct Player {
-	int hp;		// +0 (offset)
-	int damage;	// +4
+struct StatInfo {
+	int hp;			// offset +0
+	int attack;		// +4
+	int defence;	// +8
 };
+
+void EnterLobby();
+StatInfo CreatePlayer();
+void CreateMonster(StatInfo* info);
+// 플레이어 승리 시 true, 아니면 false
+bool StartBattle(StatInfo* player, StatInfo* monster);
 
 int main()
 {
-	int number = 1;
-	// 1) 주소 연산자 (&)
-	//		- 해당 변수의 주소를 알려주세요
-	//		- 해당 변수 타입에 따라서 TYPE* 반환
-	int* pointer = &number; // char* pointer 은 ERROR!
-
-	// 2) 산술 연산자 (+,-)
-	
-	number += 1;
-	// 1증가 (!)
-
-	// int
-	// - * : 포인터 타입이네! (8바이트) 주소를담는 바구니!
-	// - int :주소를 따라가면 int(4바이트 정수형 바구니)가 있다고 가정!
-
-	// [!] 포인터에서 *나 -등 산술 연산으로 1을 더하거나 빼면,
-	// 정말 '그 숫자'를 더하고 뺴라는 의미 X
-	// 한번에 TYPE의 크기 만큼을 이동!
-	// 다음/이전 바구니로 이동원헤 << [바구니 단위]의 이동으로
-	// 즉, 1을 더하면 = 바구니 1개 이동시켜라
-	// 3을 더하면 = 바구니 3개 이동시켜라
-
-	// pointer += 1;
-	// 4증가 (?) = 다음 바구니로 이동시켜줘
-
-	// 3) 간접 연산자(*)
-	//		- 포탈을 타고 해당 주소로 슝~ 이동
-	number = 3;
-	*pointer = 3;
-
-	Player player;
-	player.hp = 100;
-	player.damage = 10;
-
-	Player* playerPtr = &player;
-	(*playerPtr).hp = 200;
-	(*playerPtr).damage = 200;
-
-	// 4) 간접 멤버 연산자 (->)
-	// * 간접 연산자 (포탈 타고 해당 주소로 gogo)
-	// . 구조체의 특정 멤버를 다룰 때 사용 (어셈블리어로 까보면 사실상 그냥 덧셈)
-	// -> 는 *와 . 한 방에!
-	playerPtr->hp = 200;
-	playerPtr->damage = 200;
+	EnterLobby();
 	
 	return 0;
+}
+
+void EnterLobby() {
+	cout << "로비에 입장했습니다" << endl;
+
+	StatInfo player;
+	// [매개변수][RET][지역변수(임시 저장소인 temp(100, 10, 2), player(b,b,b))] [매개변수(&temp)][RET][지역변수(ret(100, 10, 2))]
+	player = CreatePlayer();
+	// player = temp
+
+	StatInfo monster;
+	// [매개변수][RET][지역변수(monster(b,b,b))] [매개변수(&monster)][RET][지역변수()]
+	// ->를 통해 지역변수 monster의 변수들을 접근, 조정
+	CreateMonster(&monster); // 몬스터 구조체 넘겨주기
+
+	// 번외편1)
+	// 구조체끼리 복사할 때 무슨 일이 벌어질까?
+	// player = monster;
+	// 한줄이라도 빠른걸 의미 X
+
+	bool victory = StartBattle(&player, &monster);
+
+	if (victory)
+		cout << "승리!" << endl;
+	else
+		cout << "패배!" << endl;
+
+}
+
+StatInfo CreatePlayer() {
+	StatInfo ret; // 반환값
+	cout << "플레이어 생성" << endl;
+
+	ret.hp = 100;
+	ret.attack = 10;
+	ret.defence = 2;
+
+	return ret;
+}
+
+void CreateMonster(StatInfo* info) {
+	cout << "몬스터 생성" << endl;
+
+	info->hp = 40;
+	info->attack = 8;
+	info->defence = 1;
+
+}
+
+bool StartBattle(StatInfo* player, StatInfo* monster) {
+	while (true) {		// damage 변수는 그냥 계산용도 = 재사용 가능
+		// 둘 중하나 죽을 때까지 무한정 반복!!
+		int damage = player->attack - monster->defence;
+		if (damage < 0)
+			damage = 0;
+
+		monster->hp -= damage;
+		if (monster->hp < 0)
+			monster->hp = 0;
+
+		cout << "몬스터 HP : " << monster->hp << endl;
+
+		if (monster->hp == 0) // 몬스터 죽음
+			return true;
+
+		damage = monster->attack - player->defence;
+		if (damage < 0)
+			damage = 0;
+
+		cout << "플레이어 HP : " << player->hp << endl;
+
+		player->hp -= damage;
+		if (player->hp < 0)
+			player->hp = 0;
+
+		if (player->hp == 0) // 플레이어 죽음
+			return true;
+
+	}
 }
