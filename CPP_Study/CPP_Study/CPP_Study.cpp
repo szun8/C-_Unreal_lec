@@ -1,87 +1,45 @@
 ﻿#include <iostream>
 using namespace std;
 
-// 오늘의 주제 : 배열
+// 오늘의 주제 : 포인터 vs 배열
 
-struct StatInfo {
-	int hp=0xAAAAAAAA;
-	int attack=0xBBBBBBBB;
-	int defence=0xDDDDDDDD;
-};
+// 메모리상에서의 차이 
+// 포인터 = 주소를 담는 바구니 생성 (8바이트(CPU크기) 만 생성)
+// 배열 =  겉으로는 주소를 가리키지만 그냥 데이터만 담는 원격 영역 생성 (바구니 생성 X)(내가 정한 데이터만큼 메모리 생성)
+void Test(int a) {
+	a++;
+}
+
+// 배열은 함수 인자로 넘기면, 컴파일러가 알아서 포인터로 치환 (char[] -> char*)
+// 즉 배열 내용의 전체를 넘긴게 아니라, 시작 주소(포인터)만 넘긴 것
+void Test(char a[]) {
+	a[0] = 'x';
+}
 
 int main()
 {
-	// TYPE 이름[개수];
+	// .data 주소 [H][e][l][l][o][ ][W][o][r][l][d][\0]
+	// test1[ 주소 ] << 8바이트 = 문자가 아무리 늘어나도 바구니의 크기는 변함 X
+	const char* test1 = "Hello World";
+	
+	// test2 = 주소
+	char test2[] = "Hello World";
+	// [H][e][l][l][o][ ][W][o][r][l][d][\0]
+	// test2 라는 별도의 바구니가 생성된게 아님
+	// 배열은 [ 닭장 ] 즉, 그 자체로 같은 데이터 끼리 붙어있는 '바구니 모음'
+	// - 다만 [배열 이름]은 '바구니 모음' 의 [시작 주소]
 
-	// 배열의 크기는 상수여야 함 (VC 컴파일러 기준)
-	const int monsterCount = 10;
-	StatInfo monsters[monsterCount];
+	// 배열을 함수의 인자로 넘기게 되면?
+	int a = 0;
+	Test(a);
+	// a는 바구니이기에 값 만 복사해서 당연히 a는 바뀌지 않는다
 
-	// 여태껏 변수들의 [이름]은 바구니의 이름이었음
-	int a = 10;
-	int b = a;
-
-	// 그런데 배열은 [이름] 조금 다르게 동작
-	// StatInfo players[10];
-	// players = monsters;
-
-	// 그럼 배열의 이름은 뭐지?
-	// 배열의 이름은 곧 배열의 시작 주소
-	// 정확히는 시작 위치를 가리키는 TYPE(StatInfo)* 포인터
-	auto WhoAmI = monsters; // auto = 타입 추론해 자료형 자동 지정
-
-	// StatInfo(주소)[ (100, 10, 1) ] StatInfo[ ] StatInfo[ ] StatInfo[ ] StatInfo[ ]...
-	// monster_0[ 주소 ]
-	StatInfo* monster_0 = monsters;
-	monster_0->hp = 100;
-	monster_0->attack = 10;
-	monster_0->defence = 1;
-
-	// 포인터의 덧셈!
-	// StatInfo[ (100, 10, 1) ] StatInfo[ (200, 20, 2) ] StatInfo[ ] StatInfo[ ] StatInfo[ ]...
-	// monster_1[ 주소 ]
-	StatInfo* monster_1 = monsters + 1;
-	monster_1->hp = 200;
-	monster_1->attack = 20;
-	monster_1->defence = 2;
-
-	// 포인터와 참조는 자유자재로 변환 가능
-	// StatInfo[ (100, 10, 1) ] StatInfo[ (200, 20, 2) ] StatInfo[ (300, 30, 3) ] StatInfo[ ] StatInfo[ ]...
-	// monster_2[ 주소 ]
-	StatInfo& monster_2 = *(monsters + 2);
-	monster_2.hp = 300;
-	monster_2.attack = 30;
-	monster_2.defence = 3;
-
-	// [주의] 이거는 위에와 완전 다른 의미
-	// tmep[ 내용물 ]
-	StatInfo temp; // 데이터 그 자체를 조작, 주소 조작 X
-	temp = *(monsters + 2);
-	temp.hp = 400;
-	temp.attack = 40;
-	temp.defence = 4;
-
-	// 이를 조금 더 자동화 한다!
-	for (int i = 0; i < 10; i++) {
-		StatInfo& monster = *(monsters + i);
-		monster.hp = (i + 1) * 100;
-		monster.attack = (i + 1) * 10;
-		monster.defence = (i + 1);
-	}
-
-	// 인덱스
-	// *(monsters + i) = monster[i]
-	for (int i = 0; i < 10; i++) {
-		monsters[i].hp = (i + 1) * 100;
-		monsters[i].attack = (i + 1) * 10;
-		monsters[i].defence = (i + 1);
-	}
-
-	// 배열 초기화 문법 
-	int numbers[5] = {}; // 다 0으로 초기화
-	int numbers1[10] = { 1,2,3,4,5 }; // 초기화 하지 않은 부분은 0으로 초기화
-	int numbers2[] = { 1, 2, 3, 4, 11, 24, 124, 14, 1 }; // 데이터 개수만큼의 크기에 해당하는 배열로 만들어줌
-	char helloStr[] = "Hello";
+	// test2가 바뀔까? -> 바뀐다!
+	Test(test2);
+	// 배열을 인자로 넘길때는,
+	// 배열의 내부 데이터를 하나씩 복사해 넘기는것이 아닌,
+	// 배열의 '시작 주소'만 매개변수로 넘김.
+	cout << test2 << endl;
 
 	return 0;
 }
