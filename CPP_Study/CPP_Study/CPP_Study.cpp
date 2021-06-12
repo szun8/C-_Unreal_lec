@@ -1,45 +1,98 @@
 ﻿#include <iostream>
 using namespace std;
 
-// 오늘의 주제 : 포인터 vs 배열
+// 오늘의 주제 : 로또 번호 생성기
 
-// 메모리상에서의 차이 
-// 포인터 = 주소를 담는 바구니 생성 (8바이트(CPU크기) 만 생성)
-// 배열 =  겉으로는 주소를 가리키지만 그냥 데이터만 담는 원격 영역 생성 (바구니 생성 X)(내가 정한 데이터만큼 메모리 생성)
-void Test(int a) {
-	a++;
+void Swap(int& a, int& b) {
+	int temp = a;
+	a = b;
+	b = temp;
 }
 
-// 배열은 함수 인자로 넘기면, 컴파일러가 알아서 포인터로 치환 (char[] -> char*)
-// 즉 배열 내용의 전체를 넘긴게 아니라, 시작 주소(포인터)만 넘긴 것
-void Test(char a[]) {
-	a[0] = 'x';
+void Sort(int numbers[], int count) { // 0~5
+	int j = 0;
+	while (j < (count-1)) {
+		for (int i = 0; i < count; i++) {
+			if (i != count-1 && numbers[i] > numbers[i + 1]) {
+				int temp = numbers[i + 1];
+				numbers[i + 1] = numbers[i];
+				numbers[i] = temp;
+			}
+		}
+		j++;
+	}
 }
 
+void Sort2(int numbers[], int count) { // 쌤 해답
+	for (int i = 0; i < count; i++) {
+		// i번째 값이 제일 좋은 후보라고
+		int best = i;
+
+		// 다른 후보와 비교를 통해 제일 좋은 후보 찾아나선다
+		for (int j = i + 1; j < count; j++) {
+			if (numbers[j] < numbers[best])
+				best = j;
+		}
+
+		// 제일 좋은 후보와 교체하는 과정
+		if(i!=best)
+			Swap(numbers[i], numbers[best]);
+	}
+}
+
+void ChooseLotto(int numbers[]) { // count 6가정
+
+	srand((unsigned)time(0)); // 랜덤 시드 설정
+	//TODO : 랜덤으로 1~45 사이의 숫자 6개를 골라주세요! (단 중복 X)
+
+	// 1) 일단 6개의 영역에 숫자 넣기
+	for (int i = 0; i < 6; i++) {
+		numbers[i] = (rand() % 45) + 1; // 0~44
+	}
+
+	// 2) 숫자 중복 비교
+	for (int i = 0; i< 6; i++) {
+		int same = i;
+		int another = 0 ;
+
+		// 다른 후보와 비교를 통해 중복 후보를 찾아나선다
+		for (int j = i + 1; j < 6; j++) {
+			if (numbers[j] == numbers[same]) {
+				numbers[j] = (rand() % 45) + 1;
+			}
+		}
+	}
+	// 3) 마지막 정렬
+	Sort(numbers, 6);
+}
 int main()
 {
-	// .data 주소 [H][e][l][l][o][ ][W][o][r][l][d][\0]
-	// test1[ 주소 ] << 8바이트 = 문자가 아무리 늘어나도 바구니의 크기는 변함 X
-	const char* test1 = "Hello World";
-	
-	// test2 = 주소
-	char test2[] = "Hello World";
-	// [H][e][l][l][o][ ][W][o][r][l][d][\0]
-	// test2 라는 별도의 바구니가 생성된게 아님
-	// 배열은 [ 닭장 ] 즉, 그 자체로 같은 데이터 끼리 붙어있는 '바구니 모음'
-	// - 다만 [배열 이름]은 '바구니 모음' 의 [시작 주소]
+	// 1) Swap 함수 만들기
+	int a = 1;
+	int b = 2;
+	Swap(a, b);
+	// a=2, b=1
+	cout << "Swap 함수" << endl;
+	cout << a << " " << b << endl;
+	cout << "-----------------" << endl;
 
-	// 배열을 함수의 인자로 넘기게 되면?
-	int a = 0;
-	Test(a);
-	// a는 바구니이기에 값 만 복사해서 당연히 a는 바뀌지 않는다
+	// 2) 정렬 함수 만들기 (작은 숫자가 먼저 오도록 정렬)
+	cout << "정렬 함수" << endl;
 
-	// test2가 바뀔까? -> 바뀐다!
-	Test(test2);
-	// 배열을 인자로 넘길때는,
-	// 배열의 내부 데이터를 하나씩 복사해 넘기는것이 아닌,
-	// 배열의 '시작 주소'만 매개변수로 넘김.
-	cout << test2 << endl;
+	int numbers[6] = { 1,42,3,15,5,6 };
+	Sort(numbers, sizeof(numbers) / sizeof(int)); 
+	// 1 3 5 6 15 42
+	for (int i = 0; i < 6; i++) {
+		cout << numbers[i] << endl;
+	}
+	cout << "-----------------" << endl;
+
+	// 3) 로또 번호 생성기
+	cout << "로또 번호 생성기" << endl;
+	ChooseLotto(numbers);
+	for (int i = 0; i < 6; i++) {
+		cout << numbers[i]<< " ";
+	}
 
 	return 0;
 }
