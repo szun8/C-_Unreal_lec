@@ -1,88 +1,199 @@
 ﻿#include <iostream>
 using namespace std;
 
-// 오늘의 주제 : 포인터 마무리
+// 오늘의 주제 : TextRPG2
 
-// 1) 포인터 vs 배열 2탄
-// 2) 주의사항 (마음가짐?) - 함수의 생명주기 !!!
+// main
+// - EnterLobby (PlayerInfo)
+//	-- CreatePlayer
+//	-- EnterGame (MonsterInfo)
+//		--- CreateMonsters
+//		--- EnterBattle
 
-int& TestRef() {
-	int a = 1;
-	return a;
-}
+enum PlayerType {
+	PT_knight=1,
+	PT_Archer=2,
+	PT_Mage=3
+};
 
-int* TestPointer() {
-	int a = 1;
-	return &a;
-}
-// a의 주소를 넘긴다고하지만, 이 함수가 종료되면 a에 대한 주소도 같이 사라지기에
-// 넘기는 주소가 엉뚱해짐
+enum MonsterType {
+	MT_Slime=1,
+	MT_Orc=2,
+	MT_Skeleton=3
+};
+
+struct StatInfo {
+	int hp = 0;
+	int attack = 0;
+	int defence = 0;
+};
+
+void EnterLobby();
+void PrintMessage(const char* msg);
+void CreatePlayer(StatInfo* playerInfo);
+void PrintStatInfo(const char* name, const StatInfo& info); // 복사보다 주소로 접근해 메모리 성능 고려
+void EnterGame(StatInfo* playerInfo);
+void CreateMonsters(StatInfo monsterInfo[], int count);
+bool EnterBattle(StatInfo* playerInfo, StatInfo* monsterInfo);
 
 int main()
 {
-	// 주소를 담는 바구니
-	// 진퉁은 저 멀리 어딘가에 존재
-	// p는 단지 그 곳으로 워프하는 포탈
-	int* p;
-
-	// 진짜배기! 원조 데이터
-	// 닭장처럼 데이터의 묶음 (엄청 많고 거대함)
-	int arr[10] = { 1,2,3,4,5,6,7,8 };
-
-	// 그런데 많은 사람들이 [배열 = 포인터]라 착각하는 경향있음
-
-	// - [ 배열의 이름 ]은 배열의 시작 주소값을 가리키는 TYPE* 포인터로 변환 가능!
-	p = arr;
-
-	// - [TYPE형 1차원 배열]과 [TYPE*형 포인터]는 완전히 호환된다
-	cout << p[0] << endl;
-	cout << arr[0] << endl;
-	cout << p[5] << endl;
-	cout << arr[5] << endl;
-
-	cout << *p << endl;		// p[0]
-	cout << *arr << endl;	// arr[0]
-
-	cout << *(p + 3) << endl;
-	cout << *(arr + 3) << endl;
-
-	// 지옥 ---> 2차원 배열 vs 다중포인터
-
-	// [1][2][3][4]
-	int arr2[2][2] = { {1,2}, {3,4} };
-
-	// 주소2[ ] << 4바이트
-	// 주소1[ 주소2 ]
-	// pp[ 주소1 ]				---> 이거와 같을 것이다라고 예상
-	// int** pp = (int**)arr2;	---> 캐스팅
-
-	// BUT, 실제로는 아래와 같이 저장되어 크래쉬 발생
-	// 주소2[ ] << 4바이트
-	// 주소1[ 00000001 ]   ---> 컴퓨터 : 이거 뭔주소인데 어디로 가야돼 나? 와 같은 상황이 발생하는 것
-	// pp[ 주소1 ]
-
-	// [1][2]
-	// [ 주소 ]
-	int(*p2)[2] = arr2;
-	cout << (*p2)[0] << endl;
-	cout << (*p2)[1] << endl;
-	
-	// 그렇다면 [3][4]는 접근이 불가한가? ---> NO 가능
-	cout << (*(p2 + 1))[0] << endl;
-	cout << (*(p2 + 1))[1] << endl;
-	// [!] 2차원 배열일 때, +1을 해주면 다음 줄로 넘어가는 것
-
-	// same means
-	cout << p2[0][0] << endl;
-	cout << p2[0][1] << endl;
-	cout << p2[1][0] << endl;
-	cout << p2[1][1] << endl;
-
-	// 루키스님 7년 지뢰썰 ㅋㅋ
-
-	// [매개변수][RET][지역변수] [매개변수][RET][지역변수(a)]
-	int* pointer = TestPointer();	// 엉뚱한 메모리 건드리는중...
-	// ===> 주소를 건드릴 때는 그 주소가 끝까지 유효한가에 대해 생각하고 포인터나 참조 사용하기
-
+	srand((unsigned)time(nullptr));
+	EnterLobby();
 	return 0;
+}
+
+void EnterLobby() {
+	while (true) {
+		PrintMessage("로비에 입장했습니다");
+
+		// PLAYER!  --- 얘의 정보가 EnterLobby함수 밖으로 나가는 일 X
+		StatInfo playerInfo;
+		CreatePlayer(&playerInfo);
+		PrintStatInfo("Player", playerInfo); // ref로 사용중
+		
+		EnterGame(&playerInfo);
+	}
+}
+
+void PrintMessage(const char* msg) {
+	cout << "*************************" << endl;
+	cout << msg << endl;
+	cout << "*************************" << endl;
+}
+
+void CreatePlayer(StatInfo* playerInfo) {
+	bool ready = false;
+	while (ready==false) {
+		// 올바른 값을 사용자가 입력해 플레이어를 생성했을 시,
+		// 해당 while문 빠져나가자 !
+
+		PrintMessage("캐릭터 생성창");
+		PrintMessage("[1] 기사 [2] 궁수 [3] 법사");
+		cout << "> ";
+
+		int input;
+		cin >> input;
+
+		switch (input)
+		{
+		case PT_knight:
+			playerInfo->hp = 100;
+			playerInfo->attack = 10;
+			playerInfo->defence= 5;
+			ready = true;
+			break;
+		case PT_Archer:
+			playerInfo->hp = 80;
+			playerInfo->attack = 15;
+			playerInfo->defence = 3;
+			ready = true;
+			break;
+		case PT_Mage:
+			playerInfo->hp = 50;
+			playerInfo->attack = 25;
+			playerInfo->defence = 1;
+			ready = true;
+			break;
+		}
+	}
+}
+
+void PrintStatInfo(const char* name, const StatInfo& info) {
+	cout << "*************************" << endl;
+	cout << name << " : HP=" << info.hp << " ATT=" << info.attack << " DEF=" << info.defence << endl;
+	cout << "*************************" << endl;
+}
+
+void EnterGame(StatInfo* playerInfo) {
+	const int MONSTER_COUNT = 2;
+
+	PrintMessage("게임에 입장했습니다");
+
+	while (true) {
+		StatInfo monsterInfo[MONSTER_COUNT];
+		CreateMonsters(monsterInfo, MONSTER_COUNT);	// 몬스터 생성
+
+		for (int i = 0; i < MONSTER_COUNT; i++) {
+			PrintStatInfo("Monster", monsterInfo[i]);
+		}
+
+		PrintStatInfo("Player", *playerInfo);
+
+		PrintMessage("[1] 전투 [2] 전투 [3] 도망");
+		int input;
+		cin >> input;
+
+		if (input == 1 || input == 2) {
+			int index = input - 1;
+			bool victory = EnterBattle(playerInfo, &(monsterInfo[index]));
+			// EnterGame에서 player정보를 포인터로 받고 있으니 그냥 적고,
+			// monster의 정보는 배열이니 이름 그 자체로 포인터 = 그냥 적기!
+			// 이지만 몬스터의 종류가 여러개이므로 원하는 index의 배열을 넣기
+			// [+] index만 넘겨주면 함수 매개변수 설정상 주소를 넘겨줘야하기에 주소 처리 & 하기!
+
+			if (victory == false)
+				break;
+		
+		}
+	}
+}
+
+void CreateMonsters(StatInfo monsterInfo[], int count) {
+	for (int i = 0; i < count ; i++) {
+		int randValue = (rand() % 3)+1; //1,2,3
+
+		switch (randValue)
+		{
+		case MT_Slime:	// 1
+			monsterInfo[i].hp = 30;
+			monsterInfo[i].attack = 5;
+			monsterInfo[i].defence = 1;
+			break;
+		case MT_Orc:	// 2
+			monsterInfo[i].hp = 40;
+			monsterInfo[i].attack = 8;
+			monsterInfo[i].defence = 2;
+			break;
+		case MT_Skeleton:	// 3
+			monsterInfo[i].hp = 50;
+			monsterInfo[i].attack = 15;
+			monsterInfo[i].defence = 1;
+			break;
+		}
+	}
+}
+
+bool EnterBattle(StatInfo* playerInfo, StatInfo* monsterInfo) {
+	while (true)
+	{
+		int damage = playerInfo->attack - monsterInfo->defence;
+		if (damage < 0)
+			damage = 0;
+
+		monsterInfo->hp -= damage;
+		if (monsterInfo->hp < 0)
+			monsterInfo->hp = 0;
+
+		PrintStatInfo("Monster", *monsterInfo);
+		if (monsterInfo->hp == 0) {
+			PrintMessage("몬스터를 처치헸습니다");
+			return true;
+		}
+
+		damage = monsterInfo->attack - playerInfo->defence;
+		if (damage < 0)
+			damage = 0;
+
+		playerInfo->hp -= damage;
+		if (playerInfo->hp < 0)
+			playerInfo->hp = 0;
+
+		PrintStatInfo("Playerr", *playerInfo);
+		if (playerInfo->hp == 0) {
+			PrintMessage("GAME OVER");
+			return false;
+		}
+
+	}
 }
