@@ -1,59 +1,88 @@
 ﻿#include <iostream>
 using namespace std;
 
-// 오늘의 주제 : 다차원 배열
+// 오늘의 주제 : 포인터 마무리
 
-// 배열의 배열~
+// 1) 포인터 vs 배열 2탄
+// 2) 주의사항 (마음가짐?) - 함수의 생명주기 !!!
+
+int& TestRef() {
+	int a = 1;
+	return a;
+}
+
+int* TestPointer() {
+	int a = 1;
+	return &a;
+}
+// a의 주소를 넘긴다고하지만, 이 함수가 종료되면 a에 대한 주소도 같이 사라지기에
+// 넘기는 주소가 엉뚱해짐
 
 int main()
 {
-	// [4] [2] [3] [4] [1] << 0층
-	// [1] [1] [5] [2] [2] << 1층
+	// 주소를 담는 바구니
+	// 진퉁은 저 멀리 어딘가에 존재
+	// p는 단지 그 곳으로 워프하는 포탈
+	int* p;
 
-	int apartment2D[2][5] = { {4,2,3,4,1}, {1,1,5,2,2} };
-	// 2차원 => 스택메몰는 1차원메모리로 나열된 상황
+	// 진짜배기! 원조 데이터
+	// 닭장처럼 데이터의 묶음 (엄청 많고 거대함)
+	int arr[10] = { 1,2,3,4,5,6,7,8 };
 
-	for (int floor = 0; floor < 2; floor++) {
-		for (int room = 0; room < 5; room++) {
-			// apartment2D + (floor * 20) + 4 * room를 한 주소로 이동
-			// 어셈블리어 : 먼저 어디 층에서 시작할 것인지에 대해 계산 및 이동
-			int num = apartment2D[floor][room];
-			cout << num << " ";
-		}
-		cout << endl;
-	}
+	// 그런데 많은 사람들이 [배열 = 포인터]라 착각하는 경향있음
 
-	int apartment1D[10] = { 4,2,3,4,1,1,1,5,2,2 };
+	// - [ 배열의 이름 ]은 배열의 시작 주소값을 가리키는 TYPE* 포인터로 변환 가능!
+	p = arr;
 
-	for (int floor = 0; floor < 2; floor++) {
-		for (int room = 0; room < 5; room++) {
-			int index = (floor * 5) + room;
-			// apartment1D + index(= (floor * 5) + room) * 4를 한 주소로 이동
-			int num = apartment1D[index];
-			cout << num << " ";
-		}
-		cout << endl;
-	}
+	// - [TYPE형 1차원 배열]과 [TYPE*형 포인터]는 완전히 호환된다
+	cout << p[0] << endl;
+	cout << arr[0] << endl;
+	cout << p[5] << endl;
+	cout << arr[5] << endl;
 
-	// 1차원이랑 2차원이랑 어셈블리어에서는 약간의 계산 차이는 있지만 딱히 다른건 없음
+	cout << *p << endl;		// p[0]
+	cout << *arr << endl;	// arr[0]
 
-	// 2차 배열은 언제 사용? 대표적으로 2D 로그라이크 맵
-	int map[5][5] = {
-		{1,1,1,1,1},
-		{1,0,0,1,1},
-		{0,0,0,0,1},
-		{1,0,0,0,0},
-		{1,1,1,1,1},
+	cout << *(p + 3) << endl;
+	cout << *(arr + 3) << endl;
 
-	};
+	// 지옥 ---> 2차원 배열 vs 다중포인터
 
-	for (int y = 0; y < 5; y++) {
-		for (int x = 0; x < 5; x++) {
-			int info = map[y][x];
-			cout << info;
-		}
-		cout << endl;
-	}
+	// [1][2][3][4]
+	int arr2[2][2] = { {1,2}, {3,4} };
+
+	// 주소2[ ] << 4바이트
+	// 주소1[ 주소2 ]
+	// pp[ 주소1 ]				---> 이거와 같을 것이다라고 예상
+	// int** pp = (int**)arr2;	---> 캐스팅
+
+	// BUT, 실제로는 아래와 같이 저장되어 크래쉬 발생
+	// 주소2[ ] << 4바이트
+	// 주소1[ 00000001 ]   ---> 컴퓨터 : 이거 뭔주소인데 어디로 가야돼 나? 와 같은 상황이 발생하는 것
+	// pp[ 주소1 ]
+
+	// [1][2]
+	// [ 주소 ]
+	int(*p2)[2] = arr2;
+	cout << (*p2)[0] << endl;
+	cout << (*p2)[1] << endl;
+	
+	// 그렇다면 [3][4]는 접근이 불가한가? ---> NO 가능
+	cout << (*(p2 + 1))[0] << endl;
+	cout << (*(p2 + 1))[1] << endl;
+	// [!] 2차원 배열일 때, +1을 해주면 다음 줄로 넘어가는 것
+
+	// same means
+	cout << p2[0][0] << endl;
+	cout << p2[0][1] << endl;
+	cout << p2[1][0] << endl;
+	cout << p2[1][1] << endl;
+
+	// 루키스님 7년 지뢰썰 ㅋㅋ
+
+	// [매개변수][RET][지역변수] [매개변수][RET][지역변수(a)]
+	int* pointer = TestPointer();	// 엉뚱한 메모리 건드리는중...
+	// ===> 주소를 건드릴 때는 그 주소가 끝까지 유효한가에 대해 생각하고 포인터나 참조 사용하기
 
 	return 0;
 }
