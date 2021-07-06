@@ -1,119 +1,135 @@
 ﻿#include <iostream>
 using namespace std;
 
-// 오늘의 주제 : 생성자와 소멸자
+// 오늘의 주제 : 상속성
 
-// [생성자(Construcotr)와 소멸자(Destructor)]
-// 클래스에 '소속'된 함수들을 멤버 함수라고 함
-// 이 중에서 굉장히 특별한 함수 2종, 바로 [시작]과 [끝]을 알리는 함수들
-// - 시작(탄생) -> 생성자 (여러 개 존재 가능)
-// - 끝(소멸) -> 소멸자 (오직 1개만 존재)
-
-// [암시적(Implicit) 생성자] - 기본이랑 복사 둘다 생긴다!
-// 생성자를 명시적으로 만들지 않으면,
-// 아무 인자도 받지 않는 [기본 생성자]가 컴파일러에 의해 자동으로 만들어짐
-// -> 그러나 우리가 명시적(Explicit)으로 아무 생성자 하나 만들면,
-// 자동으로 만들어지던 [기본 생성자]는 더 이상 만들어지지 않음!
+// 객체지향(OOP) <-> 절차지향
+// - 상속성 (코드의 재사용성) (객체사이의 계층적인 관계)
+// - 은닉성
+// - 다형성
 
 // class는 일종의 설계도
+// 
+// 메모리
+// [[Player]]
+// [ Knight ]
 
-class Knight {
+// 상속(Inheritance) ? 부모 -> 자식에게 물려주는 것
+
+// 생성자(N)/소멸자(1)
+// 생성자는 탄생을 기념해서 호툴되는 함수?
+// - Knight를 생성하면 -> Player의 생성자? Knight의 생성자?
+// -> 솔로몬의 선택 ! 그냥 둘 다 호출하자!
+
+// 아래와 같이 묶기 가능 ---> 보다 편한
+// GameObject
+// - Creature
+// -- Player, Monster, Npc, Pet
+
+// - Projectile
+// -- Arrow, Fireball
+
+// - Env(채집물 등)
+
+// Item
+// - Weapon
+// -- Sword, Bow
+// - Armor
+// -- Helmet, Boots, Armor 
+// ...
+
+class GameObject {	// 최최상위 객체
 public:
-	// [1] 기본 생성자 (인자가 없음, 반환 타입 X)
-	Knight(){
-		cout << "Knight()기본 생성자 호출" << endl;
-
-		_hp = 100;
-		_attack = 10;
-		_posY = 0;
-		_posX = 0;
-	}
-
-	// [2] 복사 생성자 (자기 자신의 클래스 참조 타입을 인자로 받음)
-	// (일반적으로 '똑같은' 데이터를 지닌 객체가 생성되길 기대한다)
-	Knight(const Knight& knight) {
-		// 같은 아이를 복사하고자 하니 const가 99.9% 붙는다고 보면됨
-		_hp = knight._hp;
-		_attack = knight._attack;
-		_posY = knight._posY;
-		_posX = knight._posX;
-	}
-
-	// [3] 기타 생성자 (위의 것 이외의 생성자)
-
-	// 이 중에서 인자를 1개만 받는 [기타 생성자]를
-	// [타입 변환 생성자]라고 부르기도 함
-
-	// 명시적인 용도로만 사용하고 싶다면? => explicit
-	explicit Knight(int hp) {
-		cout << "Knight(int) 생성자 호출" << endl;
-
-		_hp = hp;
-		_attack = 10;
-		_posY = 0;
-		_posX = 0;
-	}
-
-	// 소멸자
-	~Knight() {
-		cout << "~Knight() 소멸자 호출"<< endl;
-	}
-
-	// 멤버 함수 선언
-	void Move(int y, int x);
-	void Attack();
-	void Die() {
-		_hp = 0;
-		cout << "Die" << endl;
-	}
-
-public:
-	// 멤버 변수
-	int _hp;
-	int _attack;
-	int _posY;
-	int _posX;
+	int _objectId;
 };
 
-void Knight::Move(int y, int x) {
-	_posY = y;
-	_posX = x;
-	cout << "Move" << endl;
-}
+class Player : public GameObject {	// 최상위 객체
+public:
+	Player() {
+		_hp = 0;
+		_attack = 0;
+		_defence = 0;
 
-void Knight::Attack() {
-	cout << "Attack : " << _attack << endl;
-}
+		cout << "Player() 기본 생성자 호출" << endl;
+	}
 
-// Instantiate 객체를 만든다!
+	Player(int hp) {
+		_hp = hp;
+		_attack = 0;
+		_defence = 0;
+
+		cout << "Player(int hp) 생성자 호출" << endl;
+	}
+
+	~Player() {
+		cout << "~Player() 소멸자 호출" << endl;
+	}
+	void Move() { cout << "Player Move 호출" << endl; }
+	void Attack() { cout << "Player Attack 호출" << endl; }
+	void Die() { cout << "Player Die 호출" << endl; }
+
+public:
+	int _hp;
+	int _attack;
+	int _defence;
+};
+
+class Knight : public Player {
+public:
+	// 기본생성자가 아닌 기타생성자로 호출해도 선처리 영역의 생성자 호출은 기본과 달라지지 않음
+	Knight() 
+	/*
+		선(먼저)처리 영역 -> Player 생성자 호출
+	*/
+	{
+		_stamina = 100;
+		cout << "Knight() 기본 생성자 호출" << endl;
+	}
+
+	Knight(int stamina) : Player(100) // <- 이렇게 하면 선처리 영역에서 호출되는 생성자를 지정해줄 수 있음
+		/*
+			선(먼저)처리 영역 -> Player(int hp) 생성자 호출
+		*/
+	{
+		_stamina = stamina;
+		cout << "Knight(int stamina) 생성자 호출" << endl;
+	}
+
+	~Knight() {
+		cout << "~Knight() 소멸자 호출" << endl;
+	}
+	/*
+		후(나중에)처리 영역 -> ~Player 소멸자 호출
+	*/
+
+	// 재정의 : 부모의 유산을 거부하고 새로운 이름으로 만든?
+	void Move() { cout << "Knight Move 호출" << endl; }
+
+public:
+	int _stamina;
+};
+
+class Mage : public Player {
+public:
+	
+
+public:
+	int _mp;
+};
+
 int main()
 {
-	Knight k1(100);	// 생성자
-	k1._hp = 100;
-	k1._attack = 10;
-	k1._posY = 0;
-	k1._posX = 0;
+	Knight k(1);
+	k._hp = 100;
+	k._defence = 5;
+	k._attack = 10;
+	//k._stamina = 50;
 
-	// 복사 생성자 : 같은 애 만들고 싶어
-	Knight k2(k1);	
-	Knight k3 = k1;
+	//k.Move();			// 자식 ver
+	//k.Player::Move();	// 부모 ver
 
-	Knight k4;	// 생성자
-	k4 = k1;	// 복사
-
-	k1.Move(2, 2);
-	k1.Attack();
-	k1.Die();
-
-	// 암시적 형변환 -> 컴파일러가 알아서 바꿔치지
-	int num = 1;	// 정수
-	float f = (float)num;	// 명시적 < 우리가 코드로 num을 float 바구니에 넣으라고 주문
-	double d = num;			// 암시적 << 별말 안했는데 컴파일러가 알아서 처리하고 있음
-
-	Knight k5;
-	k5 = (Knight)1;	// (?) -> 타입변환 생성자 --> Knight(int) 생성자로 변환되어 호출
+	//k.Attack();
+	//k.Die();
 
 	return 0;
 }
-
-
