@@ -1,20 +1,18 @@
 ﻿#include <iostream>
-#include "Game.h"
+#include "Player.h"
 using namespace std;
 
-// 오늘의 주제 : TextRPG(OOP)
+// 오늘의 주제 : 전방선언
 
 int main()
 {
-	srand((unsigned int)time(nullptr));
+	// Player는 몇 byte?
+	// int 2ro = 2 * 4 = 8byte
+	Player p1;	// 지역변수 (Stack)
 
-	Game game;
-	game.Init();
+	Player* p2 = new Player; // 동적할당 (Heap)
 
-	while (true)
-	{
-		game.Update();
-	}
+	p1._target = p2;	// player에 다른 player 연결
 
 	return 0;
 }
