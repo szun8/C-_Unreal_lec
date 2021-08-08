@@ -1,65 +1,133 @@
 ﻿#include <iostream>
 using namespace std;
 
-// 오늘의 주제 : 함수 객체(Functor) = [함수처럼 동작]하는 객체
-// !!!!! () 연산자 오버로딩
+// 오늘의 주제 : 템플릿 기초
 
-// 함수포인터의 단점
-// 1) 완전히 동일한 시그니처(반환, 매개변수 타입, 수 등)만 호환이 가능했음
-// 2) 상태를 가질 수 없다.
+// 템플릿 : 함수나 클래스를 찍어내는 틀
+// 1) 함수 템플릿
+// 2) 클래스 템플릿
+//-----------------------------------------------------
 
-class Functor {
+#pragma region 함수 템플릿
+template<typename T>
+// template<class T> 도 같은 의미로 가능하다!
+// type별로 아래 함수를 재사용하는 것이 아니라,
+// type별로 함수를 새로 만들어 주는 것
+void Print(T a) {
+	cout << a << endl;
+}
+
+// 아래와 같이 type을 두개 받아서
+// 꼭 굳이 동일한 type의 매개변수를 받지 않아도 됨을 설명
+template<typename T1, typename T2>
+void Print(T1 a, T2 b) {
+	cout << a << " " << b << endl;
+}
+
+template<typename T>
+T Add(T a, T b) {
+	return a + b;
+}
+
+class Knight {
 public:
-	void operator() () {
-		cout << "Functor Test" << endl;
-		cout << _value << endl;
-	}
 
-	bool operator() (int num) {
-		cout << "Functor Test" << endl;
-		_value += num;
-		cout << _value << endl;
-		return true;
-	}
-
-private:
-	int _value = 0;
+public:
+	int _hp = 100;
 };
-class MoveTask {
-public:
-	void operator() () {
-		// TODO
-		cout << "해당 좌표로 플레이어 이동" << endl;
-	}
 
+// 우리가 특수하게 만든 class의 내용도 출력하고자 할 때,
+// 
+// 연산자 오버로딩 (전역함수.ver)
+// cout -> ctrl + f12 = 어디서 정의됐는지 알수 있음
+ostream& operator<< (ostream& os, const Knight& k) {
+	os << k._hp;
+	return os;
+}
+
+// 템플릿 특수화
+template<>
+void Print(Knight a) {
+	cout << "!Knight!" << endl;
+	cout << a._hp << endl;
+}
+#pragma endregion
+
+#pragma region 클래스 템플릿
+
+// typename '?'를 붙이면 '조커카드' (어떤 타입도 나 넣을 수 있음)
+// 근데 무조건 typename을 붙여야 하는 것은 아님
+template<typename Type, int SIZE=10>
+// 디폴트 매개변수도 가능!
+class RandomBox {
 public:
-	int _playerId;
-	int _posX;
-	int _posY;
+	Type GetRandomData() {
+		int idx = rand() % SIZE;
+		return _data[idx];
+	}
+public:
+	Type _data[SIZE];
 };
+
+// 템플릿 특수화
+template<int SIZE>
+// 근데 특수화에선 디폴트 매개변수가 안된댕
+// +)
+// 특수화 시에는 기본 클래스 템플릿과 다르다는 것을 구분해주기 우해서
+// 원하는 타입을 아래처럼 클래스 이름 옆 대괄호에 정의해준다
+class RandomBox<double, SIZE> {
+public:
+	double GetRandomData() {
+		cout << "RandomBox Double" << endl;
+		int idx = rand() % SIZE;
+		return _data[idx];
+	}
+public:
+	double _data[SIZE];
+};
+#pragma endregion
+
 
 int main()
 {
-	Functor functor;
+	srand(static_cast<unsigned int>(time(nullptr)));
 
-	functor();	// ()연산자 오버로딩으로 가능해짐
-	bool ret = functor(3);
+	// 알아서 type을 컴파일러가 추론해서 템플릿에 넣어주는 것
+	Print<int>(50);
+	// 대신 대괄호로 적어서 명시적으로 우리가 정해줄수도 있다.
+	Print(50.5f);
+	Print(50.0);
+	Print("Hello World");
+	
+	Print("Hello World",100);
 
-	// MMO에서 함수객체를 사용하는 예시
-	// 클라이언트 <-> 서버
-	// 서버 : 클라가 보내준 네트워크 패킷을 받아서 처리
-	// ex) 클라 : 나 (5,0) 좌표로 이동시켜줘!
-	// 만약에 이런 요청들이 많이 몰린다면?
+	Add(1, 2);
+	Add<float>(1.11f, 2.22f);
 
-	MoveTask task;
-	// 일단 요청 주문서를 만들어놓긴 함
-	task._playerId = 100;
-	task._posX = 5;
-	task._posY = 0;
+	Knight k1;
+	Print(k1);
 
-	// 나중에 여유가 될때 일감을 실행한다
-	task();
-	// => functor를 만들어주는 시점과 실행하는 시점을 분리할 수 있다는 굉장히 큰 장점 소유
-	// commandPattern 이라는 용어로 부르게 될거랍니다,,,
+	// --------------------------------------
+
+	RandomBox<int,10> rb1;
+
+	for (int i = 0; i < 10; i++) {
+		rb1._data[i] = i;
+	}
+	int value1 = rb1.GetRandomData();
+	cout << value1 << endl;
+
+	RandomBox<double, 20> rb2;
+
+	for (int i = 0; i < 20; i++) {
+		rb2._data[i] = i + 0.5;
+	}
+	int value2 = rb2.GetRandomData();
+	cout << value2 << endl;
+
+	// rb1 = rb2; => 결론적으로 같지 않게 인식
+	// 비슷한 유형의 랜덤박스로 보일지라도 템플릿 인자로 받을때
+	// 서로 다른 수가 있다면 개와 고양이 처럼
+	// 완전히 다른 클래스 유형으로 인식함
 	return 0;
 }
