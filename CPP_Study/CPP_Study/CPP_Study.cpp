@@ -4,75 +4,88 @@ using namespace std;
 
 // 오늘의 주제 : vector
 
-// STL (Standard Template Library)
-// 프로그래밍할 때 필요한 자료구조/알고리즘들을
-// 템플릿으로 제공하는 라이브러리
-
 // Container : 데이터를 저장하는 객체 (자료구조 Data Structure)
 
-// Array (배열) - 지정한 크기만큼만 사이즈 활용 가능하다는 단점 有
-// 
-// Vector (동적 배열) -> 배열을 '유동적으로' 사용한 것인가!?!?!?
-// -> 1) (여유분을 두고) 메모리를 할당한다
-//		-> Q1. 여유분은 얼만큼이 적당할까?
-// -> 2) 할당해놨던 여유분까지 꽉 찼으면, 더 크게 메모리를 증설한다
-// 		-> Q2. 증설을 얼만큼 해야할까?
-//      -> Q3. 기존보다 더 크게 할 때, 기존의 데이터를 어떻게 처리할까?
-
 // - vector의 동작 원리 (size/capacity)
-// - 중간 삽입/삭제
-// - 처음/끝 삽입/삭제
-// - 임의 접근
+
+// 반복자 iterator : 포인터와 유사한 개념, 컨테이너의 원소(데이터)를 가리키고, 다음/이전 원소로 이동 가능
 
 int main()
 {
-	vector<int> v(1000, 0);	// resize말고 초기화 처음부터 사이즈할당 + 값 지정 가능
-	vector<int> v2 = v;		// 복사도 가능!
-	v.capacity();
-
-	// size = 실제 사용 데이터개수 -> 당연 내가 넣은만큼 증가
-	// size 크기도 초기 사용자 지정 가능
-	v.resize(1000); // 다만, 그만큼 capacity도 증가
-
-	// capacity = 여유분을 포함한 용량 개수
-	//	-> A. 컴파일러에 따라 1.5(!) ~ 2배 만큼 여유분 증설
-	// 근데 size == capacity 하면 안되냐?
-	// 만약 그렇게 하다 배열 주소 뒤에 다른 메모리가 할당중이었다면,
-	// 용량이 충분한 빈 주소로 가서 기존에 있던 데이터를 복사해주는 일이 발생
-	// 너무 번거로움 (이사 비용이 여유분을 증설했을 경우보다 너무 많이 발생)
-	// 1.5 ~ 2배씩 늘어나기에 일정 큰 용량을 capacity로 지정해줬다면, (1000,2000,4000...)
-	// 안정과 여유가 생겨서 이사비용의 부담이 줄어들거임. (의 원리)
-
-	// 근데 우리가 초반 용량을 정해줄수 있다면 capacity 초기 사용자 지정도 가능
-	v.reserve(1000); // 처음 capacity 1000부터 시작
-	
-	for (int i = 0; i < 100; i++) {
-		v.push_back(100);	// 할당한 사이즈 뒤에 !!추가!!로 넣는 것
-		// v[i] = 100;			// index 접근
-		cout << v.size() << " " << v.capacity() << endl;
+	vector<int> v(10);
+	v.reserve(1000); //중간 메모리 이사를 막기 위해 capacity 지정
+	// int 대신!
+	for (vector<int>::size_type i = 0; i < v.size(); i++) {
+		v[i] = i;
 	}
 
-	// 근데 만약 데이터를 줄인다해도 capacity는 줄어들지 않음
-	v.clear();
-	cout << v.size() << " " << v.capacity() << endl;
+	/*vector<int>::iterator it;
+	it = v.begin();
+	cout << (*it) << endl;
 
-	// capacity도 clear 하고싶다면, 임시벡터 만들어서 스왑해주기
-	vector<int>().swap(v);	// Tip 이라고하네용 이런기능이 있다~ 정도!
-	cout << v.size() << " " << v.capacity() << endl;
+	int* ptr;
+	ptr = &v[0];
+	cout << (*ptr) << endl;*/
 
-	// !--여러 기능들--! 
-	v.front();		// 맨처음 있는 값 반환
-	v.back();		// 맨뒤에 있는 값 반환
-	v.pop_back();	// 맨뒤에 있는 값 삭제
+	vector<int>::iterator itBegin = v.begin();
+	vector<int>::iterator itEnd = v.end();
+	// 유효한 범위 다음의 범위를 가리키는 end()! => 즉 원치않은 쓰레기 값을 가지고 있다
 
-	const int size = v.size();
-	for (int i = 0; i < size; i++)
-		cout << v[i] << endl;
+	// (!) 아주 미세한 성능 차 = ++it > it++(복사하는 과정이 있기 때문에)
 
-	// Heap 영역 할당
-	int* arr = new int[100];
-	delete arr;
-	arr = new int[1000];
+	// 위에 보다 더 복잡해보이는데? 
+	// 다른 컨테이너는 v[i]와 같은 index 접근이 안될수도 있음
+	// iterator는 vector뿐 아니라, 다른 컨테이너에도 공동적으로 있는 개념
+	// 그래서 뭐 list<int>::iterator it 처럼 보다 쉬운 코드호환이 가능함
+	for (vector<int>::iterator it = v.begin(); it != v.end(); ++it) {
+		cout << *it << endl;
+	}
 
+	int* ptrBegin = &v[0]; // same mean = v.begin()._Ptr;
+	int* ptrEnd = ptrBegin + 10; // same mean = v.end()._Ptr;
+	for (int* ptr = ptrBegin; ptr != ptrEnd; ++ptr) {
+		cout << *ptr << endl;
+	}
+
+	// const int*;  only read , 수정 X
+	vector<int>::const_iterator cit1 = v.cbegin();
+
+	// 역방향 이동 사용자도 있음 로꾸거~
+	for (vector<int>::reverse_iterator it = v.rbegin(); it != v.rend(); ++it) {
+		cout << *it << endl;
+	}
+
+	// vector = 동적 배열 = 동적으로 커지는 배열 = 배열
+	// 원소가 하나의 메모리 블록에 연속하게 저장된다 !!! (중간에 빈 값이 있는것 용납 X)
+
+	// 기초 지식이기에 면접 단골 문제라고 합니다
+	// 	   그래서 이 부분을 모른다면 실력이 ㅎㅎ 여기까지~ 아는게 좋겠죠?
+	// - 중간(BAD) 삽입/삭제 => 삽입/삭제한만큼 기존에 있던 데이터들의 위치를 수정해줘야하기 때문에 엄청난 나비효과를 불러옴
+	// - 처음(BAD)/끝(GOOD) 삽입/삭제 => push_back()/pop_back()
+	// - 임의 접근 Random Access => index 접근 : 지원하는 이유 : 모든 원소가 연속적으로 저장되어 있기에 가능한
+
+	// but 중간 삽입 삭제가 불가능한 것은 아님
+	// 그렇다면 각각의 반환값은 무엇일까?
+	vector<int>::iterator insertIt = v.insert(v.begin() + 2, 5); //추가한 5의 주소
+	vector<int>::iterator eraseIt1 = v.erase(v.begin() + 2);	// 삭제한 곳의 주소 (데이터가 앞으로 당겨짐 고려)
+	vector<int>::iterator eraseIt2 = v.erase(v.begin() + 2, v.begin() + 4); // 삭제한 곳의 주소
+	
+	// 쭉- 스캔하면서 3이라는 데이터가 있으면 일괄 삭제
+	for (vector<int>::iterator it = v.begin(); it != v.end();) {
+		int data = *it;
+		if (data == 3) {
+			it = v.erase(it);
+			// crash 발생 = iterator은 주소만 가진것이 아니라 소속하는 container에 대한 정보도 가지고 있어서
+			// 그 자체를 삭제해주면 더이상 it는 무소속이 됨 -> 근데 건드리기에...
+			// 그래서 삭제해주고 그 값을 다시 it에 넣고 갱신해서 소속 유지
+			// 근데 이렇게 하면 땡겨진 새로운 값에서 ++it를 하니까 땡겨진 값은 조사도 안하고 넘어가게됨
+			// 그걸 방지하기 위해 ++it을 아래와 같이 조정해줌
+		}
+		else {
+			++it;
+		}
+	}
+	
+	
 	return 0;
 }
