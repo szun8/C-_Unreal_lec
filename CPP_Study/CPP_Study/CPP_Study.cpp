@@ -3,85 +3,159 @@
 using namespace std;
 
 // 오늘의 주제 : list (연결 리스트)
-// vector vs list 의 차이는 면접 단골 문제
-// - list의 동작원리
-//	ㅁ 종류
-//		 1) 단일  [1]     -> [2]  ->    [3]->[4]...등
-//		 2) 이중(양방향,STL)  [1]     <-> [2]  <->    [3]<->[4]...
-//		 3) 연결	[1]     <-> [2]  <->    [3]<->[4] <-> [1]
-
-// - 중간 삽입/삭제 (GOOD!)
-//		li.insert(iter, k) / lt.erase(iter)
-// - 처음 / 끝 - 삽입 / 삭제 (GOOD!)
-//		li.push_front/back(k) / li.pop_front/back()
-// - 임의 접근 = li[3] = 10; (NO!)
-//		=> vector등과 같이 연속된 데이터가 아니기에 인덱스 접근 불가
-//		=> list는 다음/전 주소만 가지고 있기 때문
-
-class Node {	// Node(list 구성요소 하나)들의 모음 전체 = list
+// list 구현 = 면접 단골 문제 - 여러번 연습해도 좋을듯!
+template<typename T>
+class Node {
 public:
-	Node*  _next;	// node하나의 다음주소를 타고 가보면 다음 node의 값이 있으니 반환 자료형은 Node인 것!
-	Node*  _prev;	
-	int    _data;
-	// Node [ data(4byte) _next(4 or 8)]-> Node [ data(4byte) _next(4 or 8)] -> ...
-	// Node의 설계도를 완성하지 않아도 주소바구니이다보니까 통과됨.
-	// 다음 Node는 지금 신경 X
-};		
+	Node() : _next(nullptr), _prev(nullptr), _data(T()){}	// int를 넣어주면 0으로 밀어줄거임
+	Node(const T& value) : _next(nullptr), _prev(nullptr), _data(value) {}
+public:
+	Node* _next;
+	Node* _prev;
+	T	  _data;
+};
 
+template<typename T>
+class Iterator {
+	// 단순하게 내가 어떤노드인지만 반환해주면 됨
+public:
+	// 자기 자신 class일때는 <T> 생략 가능 
+	Iterator() : _node(nullptr) {}
+	Iterator(Node<T>* node) : _node(node) {}
+
+	// ++it
+	Iterator& operator++() {
+		_node = _node->_next;
+		return *this;
+	}
+	// it++
+	Iterator& operator++(int) {
+		Iterator<T> temp = *this;
+		_node = _node->_next;
+		return temp;
+	}
+	
+	// --it
+	Iterator& operator--() {
+		_node = _node->_prev;
+		return *this;
+	}
+	// it--
+	Iterator& operator--(int) {
+		Iterator<T> temp = *this;
+		_node = _node->_prev;
+		return temp;
+	}
+
+	T& operator*() {
+		return _node->_data;
+	}
+
+	bool operator==(const Iterator& right) {
+		return _node == right._node; //같으면 참 반환
+	}
+	
+	bool operator!=(const Iterator& right) {
+		return _node != right._node; //다르면 참 반환
+	}
+
+public:
+	Node<T>* _node;
+};
+
+
+// [header] = 기본적으로 있고 데이터 추가될때마다 연결연결
+template<typename T>
+class List {
+public:
+	List() : _size(0){
+		_header = new Node<T>();
+		// 시작 더미노드는 자기 자신을 기본적으로 생성해 가리키는 걸로,
+		_header->_next = _header;
+		_header->_prev = _header;
+	}
+	~List() {
+		while (_size > 0)
+			pop_back();
+
+		delete _header;
+	}
+
+	void push_back(const T& value) {
+		AddNode(_header, value);
+	}
+	// [1] <-> [2] <-> [before] <-> [4] <-> [_header] <->
+	// 	   !----- AddNode -----!
+	// [1] <-> [2] <-> [after = node] <-> [before] <-> [4] <-> [_header] <->
+	Node<T>* AddNode(Node<T>* before, const T& value) {
+		Node<T>* node = new Node<T>(value);	// value값을 가진 노드를 일단 생성
+
+		Node<T>* prevNode = before->_prev;
+		prevNode->_next = node;
+		node->_prev = prevNode;
+
+		node->_next = before;
+		before->_prev = node;
+
+		_size++;
+		return node;
+	}
+
+	void pop_back() {
+		RemoveNode(_header->_prev);
+	}
+	// [1] <-> [prevNode] - [node] - [nextNode] <-> [ _header ] <->
+	// [1] <-> [prevNode] <-> [node->_next] <-> [ _header ] <->
+	Node<T>* RemoveNode(Node<T>* node) {
+		Node<T>* prevNode = node->_prev;
+		Node<T>* nextNode = node->_next;
+
+		prevNode->_next = nextNode;
+		nextNode->_prev = prevNode;
+
+		delete node;
+		--_size;
+
+		return nextNode;
+	}
+
+	int size() { return _size; }
+public:
+	typedef Iterator<T> iterator;
+	iterator begin() { return iterator(_header->_next); }
+	iterator end() { return iterator(_header); }
+
+	iterator insert(iterator it, const T& value) {
+		return iterator(AddNode(it._node, value));
+	}
+	
+	iterator erase(iterator it) {
+		return iterator(RemoveNode(it._node));
+	}
+
+public:
+	Node<T>* _header;
+	int _size;
+};
 int main()
 { 
-	list<int> li;
+	List<int> li;
+	List<int>::iterator eraseIt;
 
-	// li.capacity(); 없음, 필요할때마다 노드 하나를 추가하는 느낌이기 때문
-
-	list<int>::iterator itBegin = li.begin();
-	list<int>::iterator itEnd = li.end();
-	// itEnd node는 list의 제일 마지막 값을 가리키는게 아니라 그 다음 더미 노드 [ _Myhead : end() ] 를 가리킨다
-	// (!) 더미 노드 = 우리가 넣어준 값이 X
-
-	// list<int>::iterator itTest1 = --itBegin; => ERROR! 맨처음값에서는 뒤로 이동하면 CRASH, end인 더미노드로 가는 것 X
-	// list<int>::iterator itTest3 = ++itEnd; => ERROR! 마찬가지로 맨뒷값에서는 앞으로 이동하면 CRASH, begin노드로 가는 것 X
-	list<int>::iterator itTest2 = --itEnd; // 바로 전 데이터로 ! possible
-
-	// 주소 이동 연산자 : ++ or -- 는 가능한데, 아래처럼 하는것은 불가능함.
-	// list<int>::iterator itTest4 = itBegin + 10; => 연속적인 데이터연결이 아니기에 당연 비효율적, 인덱스 접근이 안되는 이유와 동일하게 불가능
-	// 대충 안되는 것에는 이유가 있는 법 = 효율적이지도, 빠르지도 않음 (굳이?)
-
-	// 근데 여기서 오잉? 하는 부분이 생김.
-	// 중간삽입/삭제는 빠르다 <-> 중간 임의 접근은 느리다 = ??? 아이러니,,할 수 있어
-	
-	// 몇 번 인덱스에 있는 것을 삭제해줘 = 50번째의 주소를 가지고 있지 않음
-	// 따라서, 50번까지의 주소로 하나씩 접근을 한 후 삭제 => 느림
-	list<int>::iterator it = li.begin();
-	for (int i = 0; i < 50; ++i)
-		++it;
-	li.erase(it);
-
-	// 그러나 딱 50번째 데이터의 주소를 가지고 있다면, 하나씩 접근해줄 필요없이 그냥 해당주소로 뿅 이동해서 삭제가 가능함 => 빠름
-	list<int>::iterator itRemember;
-	for (int i = 0; i < 100; ++i) {
-		if (i == 50) {
-			itRemember = li.insert(li.end(), i); // 50번째 노드의 주소
+	for (int i = 0; i < 10; ++i) {
+		if (i == 5) {
+			eraseIt = li.insert(li.end(), i);
 		}
 		else
 			li.push_back(i);
 	}
-	// 중간 삽입/삭제가 GOOD인 이유
-	// So, `주소 접근의 차이`라고 볼 수 있다.
 
-	int* ptrBegin = &(li.front());
-	int* ptrEnd = &(li.back());
+	li.pop_back();
+	li.erase(eraseIt);
 
-	for (list<int>::iterator it = li.begin(); it != li.end(); ++it) {
-		cout << *it << endl;
+	for (List<int>::iterator it = li.begin(); it != li.end(); ++it) {
+		cout << (*it) << endl;
 	}
 
-	li.insert(itBegin, 100);
-	li.push_front(100);
-
-	li.erase(li.begin());
-	li.pop_front();
-
-	li.remove(10);	// 내가 원하는 값 모두 삭제 !!!
 	return 0;
 }
