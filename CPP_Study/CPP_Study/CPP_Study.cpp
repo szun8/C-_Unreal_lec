@@ -1,161 +1,47 @@
 ﻿#include <iostream>
-#include <list>
+#include <vector>
+#include <deque>
 using namespace std;
 
-// 오늘의 주제 : list (연결 리스트)
-// list 구현 = 면접 단골 문제 - 여러번 연습해도 좋을듯!
-template<typename T>
-class Node {
-public:
-	Node() : _next(nullptr), _prev(nullptr), _data(T()){}	// int를 넣어주면 0으로 밀어줄거임
-	Node(const T& value) : _next(nullptr), _prev(nullptr), _data(value) {}
-public:
-	Node* _next;
-	Node* _prev;
-	T	  _data;
-};
+// 오늘의 주제 : deque = double-ended(양방향) queue 데크 = vector + list 특징
+// [       ] 배열 형태의 저장이다보니 vector의 특정 + 일부 할당한 배열 영역이 다 차면, 
+// [       ] 새롭게 다른 배열 영역을 생성 - 연속된게 아니니 list의 특징 (block단위)
 
-template<typename T>
-class Iterator {
-	// 단순하게 내가 어떤노드인지만 반환해주면 됨
-public:
-	// 자기 자신 class일때는 <T> 생략 가능 
-	Iterator() : _node(nullptr) {}
-	Iterator(Node<T>* node) : _node(node) {}
-
-	// ++it
-	Iterator& operator++() {
-		_node = _node->_next;
-		return *this;
-	}
-	// it++
-	Iterator& operator++(int) {
-		Iterator<T> temp = *this;
-		_node = _node->_next;
-		return temp;
-	}
-	
-	// --it
-	Iterator& operator--() {
-		_node = _node->_prev;
-		return *this;
-	}
-	// it--
-	Iterator& operator--(int) {
-		Iterator<T> temp = *this;
-		_node = _node->_prev;
-		return temp;
-	}
-
-	T& operator*() {
-		return _node->_data;
-	}
-
-	bool operator==(const Iterator& right) {
-		return _node == right._node; //같으면 참 반환
-	}
-	
-	bool operator!=(const Iterator& right) {
-		return _node != right._node; //다르면 참 반환
-	}
-
-public:
-	Node<T>* _node;
-};
-
-
-// [header] = 기본적으로 있고 데이터 추가될때마다 연결연결
-template<typename T>
-class List {
-public:
-	List() : _size(0){
-		_header = new Node<T>();
-		// 시작 더미노드는 자기 자신을 기본적으로 생성해 가리키는 걸로,
-		_header->_next = _header;
-		_header->_prev = _header;
-	}
-	~List() {
-		while (_size > 0)
-			pop_back();
-
-		delete _header;
-	}
-
-	void push_back(const T& value) {
-		AddNode(_header, value);
-	}
-	// [1] <-> [2] <-> [before] <-> [4] <-> [_header] <->
-	// 	   !----- AddNode -----!
-	// [1] <-> [2] <-> [after = node] <-> [before] <-> [4] <-> [_header] <->
-	Node<T>* AddNode(Node<T>* before, const T& value) {
-		Node<T>* node = new Node<T>(value);	// value값을 가진 노드를 일단 생성
-
-		Node<T>* prevNode = before->_prev;
-		prevNode->_next = node;
-		node->_prev = prevNode;
-
-		node->_next = before;
-		before->_prev = node;
-
-		_size++;
-		return node;
-	}
-
-	void pop_back() {
-		RemoveNode(_header->_prev);
-	}
-	// [1] <-> [prevNode] - [node] - [nextNode] <-> [ _header ] <->
-	// [1] <-> [prevNode] <-> [node->_next] <-> [ _header ] <->
-	Node<T>* RemoveNode(Node<T>* node) {
-		Node<T>* prevNode = node->_prev;
-		Node<T>* nextNode = node->_next;
-
-		prevNode->_next = nextNode;
-		nextNode->_prev = prevNode;
-
-		delete node;
-		--_size;
-
-		return nextNode;
-	}
-
-	int size() { return _size; }
-public:
-	typedef Iterator<T> iterator;
-	iterator begin() { return iterator(_header->_next); }
-	iterator end() { return iterator(_header); }
-
-	iterator insert(iterator it, const T& value) {
-		return iterator(AddNode(it._node, value));
-	}
-	
-	iterator erase(iterator it) {
-		return iterator(RemoveNode(it._node));
-	}
-
-public:
-	Node<T>* _header;
-	int _size;
-};
 int main()
 { 
-	List<int> li;
-	List<int>::iterator eraseIt;
+	// 시퀀스 컨테이너 : 데이터가 삽입 순서대로 나열되는 형태
+	// vector(동적배열) list(이중연결리스트) deque(!)
+	
+	// random access 지원 = 배열기반 동작
+	// 다만 메모리 할당 정책이 다르다
 
-	for (int i = 0; i < 10; ++i) {
-		if (i == 5) {
-			eraseIt = li.insert(li.end(), i);
-		}
-		else
-			li.push_back(i);
-	}
+	vector<int> v(3, 1);	// [1 1 1]
+	deque<int> dq(3, 1);	// [ 3 3 ] [1 1 1 2] [ 2 ], int = 4byte, 앞뒤로 통을 늘림
 
-	li.pop_back();
-	li.erase(eraseIt);
+	v.push_back(2);
+	v.push_back(2);
 
-	for (List<int>::iterator it = li.begin(); it != li.end(); ++it) {
-		cout << (*it) << endl;
-	}
+	dq.push_back(2);
+	dq.push_back(2);
+
+	dq.push_front(3);
+	dq.push_front(3);
+
+	// - deque의 동작원리
+	// - 중간 삽입/삭제 (BAD / BAD) => 삽입/삭제를 하면 vector의 특징과 마찬가지로 크기를 그만큼 조정해줘야함
+	// 	   => 삭제하면, 빈만큼 앞으로 땡겨줘야함 / 삽입하면, 넣은만큼 앞이든 뒤든 밀어줘야함
+	// - 처음/끝 삽입/삭제 (GOOD / GOOD) => 통에 다가 채워넣으면 되고, 통이 꽉찼으면 그냥 다른 통에 새로 넣으면됨
+	
+	deque<int>::iterator it;
+	// - 임의접근 (GOOD) (약간 아파트처럼 각 데이터가 저장되어있어서 빠른거임)
+	// _Size_type _Block = _Mycont->_Getblock(_Myoff); => 찾고자하는 offset이 들어있는 Block을 찾고
+	// _Size_type _Off = _Myoff % _Block_size;	=> 나머지 연산을 통해 해당 Block에서 몇번째 offset에 있는지 찾고
+	// return _Mycont->_Map[_Block][_Off];	=> 최종적으로 몇번째 Block에 몇번째 offset에 니가 원하는 데이터를 반환
+	
+	// 몇 블록, 몇 옾셋인지 알수있다는 것은, 중간에 비어있는 곳이 없다는 것을 의미
+	// 따라서 중간 삽입/삭제가 BAD인 것!
+	
+	// 리스트같은 경우에는 모든 데이터들이 다 떨어져 주소로 연결되어있어서 임의접근이 어려웠던 것
 
 	return 0;
 }
