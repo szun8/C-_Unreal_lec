@@ -7,6 +7,7 @@
 * 동적할당
 * 복사
 * 타입변환
+* [연관 container](#-연관container) - [map(multimap)](#-map) / [set(multiset)](#-set)
 * * *
 
 <H2>📍 객체지향</H2>
@@ -85,5 +86,78 @@
        
     해당 개념을 `동적바인딩` 실행 시점에 결정    
      vs `정적바인딩` 컴파일시점에 어느 것을 불러올지 결정    
-   
+     
+     
+<H2>📍 연관container</H2>
+     
+: 관계있는 값으로 `key` 와 `value` 를 묶어서 데이터를 저장하는 container 
+        
+ - 원하는 데이터를 빠르게 찾고자할 때 유용(아래의 단점 보완)
+ - 기존 `vector` `list` 등은 선형자료구조로, 원하는 데이터를 찾는 과정이 고됐음.
+ - 들어온 순서대로 저장을 하는 시퀀스container와 다르게 특정 규칙에 따라 데이터를 저장   
+ - 종류 : `map` `multimap` `set` `multiset`      
+    
+<H3>🗺 Map</H3>
+
+  : `node` 기반인 `균형이진트리`로 구성  
+  ```C++
+  #include <map>
+  class Node{
+    public:
+      Node* _left;
+      Node* _right;
+      // Data
+      int key, _value;
+      pair<int,int> _data; // pair로 key, value 동시 선언 가능
+  };
+  int main(){
+    map<int,int> m;
+  ```
+  👩🏻‍💻 **주요 함수**
+  - `insert()`   
+      key와 value동시 삽입 `make_pair(key,value)` `pair<int,int>(key,value)`   
+      반환값 : `map.first` = 삽입 iterator / `map.second` = 삽입 성공여부
+      ```C++
+      pair<map<int,int>::iterator, bool> ok;
+      ok = m.insert(1,100);
+      ok = m.insert(1,200);   // key 중복시 무시처리(값 덮어쓰기 X), bool false 반환
+      ```
+      `[index]` 접근 및 데이터 삽입도 가능   
+      
+      📃 *없으면 추가, 있으면 수정.ver1* = `find()` 활용 : 없으면 `insert` / 있으면 `iterator의 second` 수정    
+      📃 *없으면 추가, 있으면 수정.ver2* = `[index]` 활용 : 없으면 바로추가 / 있으면 바로수정
+      ```C++
+      m[5] = 500;
+      ```
+      그러나, index 기반 코드 사용'만'으로도 데이터 생성한다는 점 주의 (!!!)  
+      
+  - `erase()`
+      key 나 범위로 삭제 위치 지정 가능   
+      반환값 : `<unsigned int>`
+      ```C++
+      unsigned int count;
+      count = m.erase(1); // count = 1
+      count = m.erase(1); // count = 0, 이미 지운 데이터를 지우고자 할 때는 무시
+      ```
+  
+  - `find()`   
+      반환값 : 있으면 찾은 값의 `iterator` / 없으면 `end()`
+      ```C++
+      map<int,int>::iterator findIt = m.find(key);
+      if(findIt != m.end()) // 찾는 값 있음
+        cout<< "TRUE"<< endl;
+      else                  // 찾는 값 없음
+        cout<< "FALSE"<< endl;
+      ```
+      
+    🗺 **map 순회**
+    ```C++
+    for(map<int,int>::iterator it = m.begin(); it != m.end(); ++it){
+        pair<const int, int>& p = (*it);
+        int key = p.first;  // p 선언을 안해줬다면, it->first
+        int value = p.second;
+    }
+    ```
+    
+ <H3>🔗 Set</H3>
     
