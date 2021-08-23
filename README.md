@@ -158,6 +158,43 @@
         int value = p.second;
     }
     ```
+ 🔑 **multimap**
+ : `map` 에서 중복 `key` 허용   
+    
+  👩🏻‍💻 **주요 함수**
+  - `insert()` 
+    ```C++
+    multimap<int, int> mm;
+    mm.insert(make_pair(1,100));
+    mm.insert(make_pair(1,200));
+    mm.insert(make_pair(1,300));
+    mm.insert(make_pair(2,400));
+    mm.insert(make_pair(2,500));
+    ```
+  - `erase()` `find()`
+    ```C++
+    unsigned int count = mm.erase(1); // key가 1인 데이터 다 삭제, count는 3
+    // find()로 하나씩도 erase 가능
+    multimap<int, int>::iterator itFind = mm.find(1); // 중복 key의 첫 iterator 반환
+    if( itFind != mm.end() )
+        mm.erase(itFind); // key = 1, value = 100인 데이터 삭제
+        // ++연산자로 다음 iterator로도 접근해서 삭제 가능
+    ```
+  - `equal_range()` : 범위 반환 함수
+    ```C++
+    pair<multimap<int,int>::iterator, multimap<int,int>::iterator> itPair;  // start iterator, end iterator
+    itPair = mm.equal_range(1);
+    itPair.first == lower_bound(1);     // start iterator
+    itPair.second == upper_bound(1);    // end iterator
+    ```
+    
     
  <H3>🔗 Set</H3>
+ 
+ : `map` 과 달리 `key` 값 하나만 데이터에 저장하는 container
+ - 하나의 값만을 저장한다는 특징 이외에는 `map` 과 거의 유사
+ - 단, `[index]` 사용은 불가
+
+🔑 **multiset**
+ : `set` 에서 중복 `key` 허용  
     
