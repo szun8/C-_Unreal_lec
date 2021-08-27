@@ -7,8 +7,9 @@
 * 동적할당
 * 복사
 * 타입변환
-* [sequence container](#-sequence-container)
-* [연관 container](#-연관-container) - [map(multimap)](#-map) / [set(multiset)](#-set)
+* [Sequence Container](#-sequence-container)
+* [연관 Container](#-연관-container) - [Map(multimap)](#-map) / [Set(multiset)](#-set)
+* [Modern C++](#-modern-c)
 * * *
 
 <H2>📍 객체지향</H2>
@@ -205,3 +206,30 @@
 🔑 **multiset**
  : `set` 에서 중복 `key` 허용  
     
+<H2>📍 Modern C++</H2>
+
+- **`auto`**    
+ : 컴파일러가 알아서 자료형을 추론해주는 기능
+
+  ```C++
+  // type deduction
+  int a = 1;
+  auto a = 1; // 일종의 조커카드 느낌! 🃏
+  ```
+🧨 warning - `const` 와 `&` 는 무시 , 가독성은 하락한다는 점 => 남용은 금지!
+  ```C++
+  int a = 1;
+  const int cst = a;
+  int& ref = a;
+  auto teat1 = cst; // auto type = int
+  auto test2 = ref; // auto type = int
+  ```
+
+- **`중괄호 초기화 { }`**   
+: `=` 이나 `()` 로 초기화하던 기능에서, 추가적으로 생긴 초기화 기능 (초기화 문법의 일치화)   
+  ```C++
+  int a = 0;
+  int b(0);
+  int c {0};
+  vector<int> v {1, 2, 3, 4};
+  ```
