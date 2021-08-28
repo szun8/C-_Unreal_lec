@@ -61,7 +61,7 @@
     MoveKnight(&k);   // "Kinght Move!"
     ```   
     상속관계에서는 부모-자식 class의 **포함관계** 를 생각해보는 것이 좋다   
-    ~~뭐 당연하다고 생각되는 부분일 수 있다...~~   
+    <s>뭐 당연하다고 생각되는 부분일 수 있다...</s>   
     
         + (1) 부모 -> 자식 X
         + (2) 자식 -> 부모 O   
@@ -69,17 +69,18 @@
     단, (2)의 경우 "Kinght Move!" 가 아니라 "Player Move!" 가 출력된다   
     이를 Knight로 출력하기 위해선, 아래 개념이 필요한데,   
     * `virtual` 가상함수   
-    : `vftable`에 어디로 가야하는지에 대한 정보를 미리 저장해 원하는 것을 실행해준다
+    : `vftable`에 어디로 가야하는지에 대한 정보를 미리 저장해 원하는 것을 실행해준다   
+       
     ```C++
     // class Player
     virtual int VMove(Player* player);   
     void MovePlayer(Player* player){
       player->VMove();
     }
-      
+
     // class Knight
     virtual int VMove(Kinght* knight);   
-    
+
     int main(){
       Kinght k;
       MovePlayer(&k);   // k의 VMove로 이동
@@ -122,15 +123,18 @@
   - `insert()`   
       key와 value동시 삽입 `make_pair(key,value)` `pair<int,int>(key,value)`   
       반환값 : `map.first` = 삽입 iterator / `map.second` = 삽입 성공여부
+      
       ```C++
       pair<map<int,int>::iterator, bool> ok;
       ok = m.insert(1,100);
       ok = m.insert(1,200);   // key 중복시 무시처리(값 덮어쓰기 X), bool false 반환
       ```
+      
       `[index]` 접근 및 데이터 삽입도 가능   
       
       📃 *없으면 추가, 있으면 수정.ver1* = `find()` 활용 : 없으면 `insert` / 있으면 `iterator의 second` 수정    
       📃 *없으면 추가, 있으면 수정.ver2* = `[index]` 활용 : 없으면 바로추가 / 있으면 바로수정
+      
       ```C++
       m[5] = 500;
       ```
@@ -139,6 +143,7 @@
   - `erase()`
       key 나 범위로 삭제 위치 지정 가능   
       반환값 : `<unsigned int>`
+      
       ```C++
       unsigned int count;
       count = m.erase(1); // count = 1
@@ -147,6 +152,7 @@
   
   - `find()`   
       반환값 : 있으면 찾은 값의 `iterator` / 없으면 `end()`
+      
       ```C++
       map<int,int>::iterator findIt = m.find(key);
       if(findIt != m.end()) // 찾는 값 있음
@@ -171,6 +177,7 @@
     
   👩🏻‍💻 **주요 함수**
   - `insert()` 
+
     ```C++
     multimap<int, int> mm;
     mm.insert(make_pair(1,100));
@@ -180,6 +187,7 @@
     mm.insert(make_pair(2,500));
     ```
   - `erase()` `find()`
+
     ```C++
     unsigned int count = mm.erase(1); // key가 1인 데이터 다 삭제, count는 3
     // find()로 하나씩도 erase 가능
@@ -189,13 +197,13 @@
         // ++연산자로 다음 iterator로도 접근해서 삭제 가능
     ```
   - `equal_range()` : 범위 반환 함수
+
     ```C++
     pair<multimap<int,int>::iterator, multimap<int,int>::iterator> itPair;  // start iterator, end iterator
     itPair = mm.equal_range(1);
     itPair.first == lower_bound(1);     // start iterator
     itPair.second == upper_bound(1);    // end iterator
     ```
-    
     
  <H3>🔗 Set</H3>
  
@@ -216,7 +224,7 @@
   int a = 1;
   auto a = 1; // 일종의 조커카드 느낌! 🃏
   ```
-🧨 warning - `const` 와 `&` 는 무시 , 가독성은 하락한다는 점 => 남용은 금지!
+  🧨 warning - `const` 와 `&` 는 무시 , 가독성은 하락한다는 점 => 남용은 금지!
   ```C++
   int a = 1;
   const int cst = a;
@@ -231,5 +239,103 @@
   int a = 0;
   int b(0);
   int c {0};
-  vector<int> v {1, 2, 3, 4};
+  vector<int> v1 {1, 2, 3, 4};
   ```
+  👍🏻 장점 - container와 잘어울리며, 축소변환방지 기능을 가지고 있다
+  ```C++
+  int x = 0;
+  double y = x; // ERROR (X)
+  double z {x}; // ERROR (O) ! → 실행되는 코드의 자료형을 꼼꼼히 check
+  ```
+  🧨 warning - `initializer_list` : 초기화 리스트
+  ```C++
+  class Knight{
+    public:
+      Knight(initializer_list<int> li) {}
+      Knight(int a, int b) {} // 매개변수로 int인자를 두개 받는 생성자
+  }
+  int main(){
+    Knight k1;    // 기본 생성자 호출
+    Knight k2{};  // 기본 생성자 호출
+    Knight k3{1, 2};  // Knight(initializer_list<int> li) 생성자 호출 = 우선순위가 제일 위에 있음, 조심!
+    
+    // 추가적으로 알면 좋은 것
+    vector<int> v2(5, 2);   // [2, 2, 2 ,2, 2]
+    vector<int> v3{5, 2};   // [5, 2]
+  }
+  ```
+  
+- **`nullptr`**   
+: 주소를 `NULL`로 설정해주는 기능   
+  🙄 이전에 사용하던 `NULL` `0`의 단점을 위해 생성
+  
+  ```C++
+  void Test(int a) {cout << 'int' <<endl;}       // 정수
+  void Test(void* ptr) {cout << 'ptr' <<endl;}   // 포인터
+  int main(){
+    Test(0);       // int
+    Test(NULL);    // int => NULL값도 정의에서는 '0'으로 정의되어있음, 정수인식으로 포인터 접근 불가
+    Test(nullptr); // ptr => 포인터 접근! 위와 같았던 오작동을 방지해준다 + 가독성 증가
+  }
+  ```
+  
+- **`using`**   
+: 기존 `typedef`의 기능 대신 쓸수있는 새로운 별칭 문법   
+
+  👀 `using` 🆚 `typedef`   
+  + 기입 순서 상이 → 가독성(직관성) 상승   
+    ```C++
+    typedef int id1;
+    using id2 = int;
+    // 함수포인터
+    typedef void(*myFunc1)();
+    using myFunc2 = void(*)();
+    ```   
+  
+  + `template` 사용 → `typedef` 에서는 바로 사용이 불가능했음   
+  
+    ```C++
+    template<typename T>
+    struct List1{              // 구조체를 통해 이차적으로 정의를 해야했음
+      typedef std::list<T> type;
+    }
+    template<typename T>
+    using List2 = std::list<T> // 바로 가능
+
+    int main(){
+     List1<int>::type li1;  // typedef
+     List2<int> li2;        // using
+    }
+    ```
+  
+- **`enum class`**   
+: 기존 `enum`의 기능에서 유효범위를 가진 새로운 열거형 `scoped enum`  
+
+  ```C++
+   enum Name1 { A, B, C};
+   enum class Name2 { D, E, F};
+   int main(){
+      int A = 1;  // ERROR
+      int D = 2;  // possible
+   }
+  ```
+  + 이름 공간 관리(scoped)   
+    : 기존 `enum` 에서 활용된 이름의 범위를 `전역`으로 인식해 다른 곳에서 사용이 불가했지만, `enum class`는 `지역`으로 인식해 다른 곳에서도 사용 가능!
+  + 암묵적 변환 금지   
+    : 기존 `enum`에서 정의된 이름들은 기본적으로 `정수`로 인식 → 비교가 가능했음   
+    그러나 `enum class`는 정수로 인식을 하지 않기에 비교나 다른 변수에 넣는 것이 불가능하게 됨   
+    <s>(뭐 굳이 강제적으로 casting 하면 100% 불가능은 아니긴 함)</s>
+    
+     ```C++
+      if(A == 1) { return true; }
+      if(D == 1) { return false; }
+     ```
+     
+    추가적으로 `enum` `enum class`의 size는 `int`인 `4byte`로 되어있음 → 직접적 사이즈 변환 가능    
+    
+     ```C++
+     enum Name1 : char { A, B, C};        // sizeof(Name1) = 1
+     enum class Name2 : char { D, E, F};  // sizeof(Name2) = 1
+     ```
+___
+<H6>보고 잘못되거나 이상한 부분은 comment 남겨주세요 😂</H6>
