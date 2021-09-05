@@ -327,8 +327,8 @@
     <s>(뭐 굳이 강제적으로 casting 하면 100% 불가능은 아니긴 함)</s>
     
      ```C++
-      if(A == 1) { return true; }
-      if(D == 1) { return false; }
+      if (A == 1) { return true; }
+      if (D == 1) { return false; }
      ```
      
     추가적으로 `enum` `enum class`의 size는 `int`인 `4byte`로 되어있음 → 직접적 사이즈 변환 가능    
@@ -337,5 +337,63 @@
      enum Name1 : char { A, B, C};        // sizeof(Name1) = 1
      enum class Name2 : char { D, E, F};  // sizeof(Name2) = 1
      ```
+     
+- **`delete 삭제된 함수`**   
+: 동적할당 생성new과 소멸delete가 아닌 `함수의 기능을 삭제`하고 싶을 때 사용하는 기능   
+
+  ```C++
+   // class의 복사 대입 연산자의 기능을 막고자할 때 (객체 복사 기능)
+   class Knight {
+     public:
+        void operator =(const Knight& k) = delete; // 구현부 X
+  ```
+  
+- **`override`** **`final`**   
+  1️⃣ : 가상함수에서 `virtual`을 *어디서부터 상속* 되어 사용했는지 알고자 할 때 사용   
+  → 가독성 증가 & 상속 재정의된 함수임을 바로 알려주는 기능 수행 → 부모를 보다 쉽게 찾기 가능    
+
+  2️⃣ : 가상함수에서 자신이 가장 마지막 상속 재정의 함수임을 가리킬 때 사용 (더 밑으로 내려갈 수 없음, 봉인)
+
+    ```C++
+     virtual void Attack() override { ~ }
+     virtual void Attack() final { ~ }    
+     // 1. A (parents) → 2. B override → 3. C final → 4. D (ERROR!)
+    ```   
+     
+   ➰ `const` : 함수 뒤에 붙이면 `read only`로 기능   
+   ```C++
+     virtual void Attack(int a) const { a = 3; // ERROR ! } 
+    ```  
+
+(아래 내용들 보완 및 수정 예정)   
+- **`RValue reference 오른값 참조`**   
+◈ `Lvalue` : 단일식을 넘어선 계속되는 개체   
+◈ `Rvalue` : `LValue`가 아닌 나머지 = 지속되지 않는 개체 (임시값(= 소멸될 것), 열거형, 람다, i++ etc)   
+  ```C++
+   int a = 3; // a : LValue / 3 : RValue
+  ```
+  `LValue`를 넣을 곳에 `RValue`를 입력한다면, 오류를 뱉는다    
+  오른값 참조를 통해 나온 개념 `이동` ⇉ 기존 `복사`의 기능을 더 보완하기 위해(*속도적 측면*, 메모리적 손실)   
+  `&` 왼값 참조 / `&&` 오른값 참조   
+  오른값 자체는 내부에서 `소멸될 값`으로 인식해 훼손해도 무방하다는 장점(?)을 가지고 있어 이를 활용한 개념이라고 보면 될거같다.   
+  따라서 이미 생성된 한 객체의 정보를 다른 객체로 `이동`하면 기존 생성된 객체는 사용불가 (뺏어오는 개념) ⇉ `std::move()`
+
+- **`forwarding reference 전달 참조`**   
+
+- **`lambda 람다 []() { }`**   
+: `익명함수`, 기존 구조체`sturct` 와 연산자오버로딩`operator`로 `조건식`을 만들던 것을 하나의 함수표현식으로 대체해 더 깔끔하고 편하게 사용가능한 기능    
+
+   ✅ 각 기능   
+      ◌ [] capture : `값복사 =` `참조 &` 모드가 존재, 구현부 내부외에 선언된 변수를 가져오는 기능(그 변수를 복사해서 가져올것이냐, 참조(주소)로 가져올것이냐)     
+      ◌ () : 표현식에서 사용할 인자를 받는 부분   
+      ◌ { } : 구현부   
+       ⇉ 해당 기능을 구현하면 알아서 반환형을 추론해 뱉어준다 (따로 직접 지정도 가능)   
+       
+- **`smart pointer`**    
+: 포인터를 가리키는 `reference count`를 세어서 객체 소멸에 대한 잘못된 메모리 접근을 막는 기능(쫌 더 똑똑하게!)   
+  1️⃣ `shared_ptr`   
+  2️⃣ `weak_ptr`   
+  3️⃣ `unique_ptr` 해석 자체로 자신을 가리키는 것이 유일하게 단 하나여야하는 포인터(?)   
+
 ___
 <H6>보고 잘못되거나 이상한 부분은 comment 남겨주세요 😂</H6>
